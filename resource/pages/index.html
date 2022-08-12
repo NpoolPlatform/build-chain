@@ -1,12 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link rel="stylesheet" href="./index.css">
+    <title>npool faucet</title>
 </head>
+
 <body>
-    
+    <h1 style="margin-left: 1rem;color: dimgray;">Npool Faucet</h1>
+    <div id="content">
+
+        <div>
+            <div class="item">
+                <span class="item_key"></span>
+                <h2 style="display: inline-block;height: 3rem;">Ethereum</h2>
+            </div>
+            <div class="item">
+                <span class="item_key">Token</span>
+                <select name="cars" id="cars" style="height: 1rem;font-size: 0.8rem;">
+                    <option value="volvo">Volvo</option>
+                    <option value="saab">Saab</option>
+                    <option value="mercedes">Mercedes</option>
+                    <option value="audi">Audi</option>
+                </select>
+            </div>
+            <div class="item">
+                <span class="item_key">Contract</span>
+                <input class="item_input" type="text" value="0xB8c77482e45F1F44dE1745F52C74426C631bDD52">
+            </div>
+            <div class="item">
+                <span class="item_key">To</span>
+                <input class="item_input" type="text">
+            </div>
+            <div class="item">
+                <span class="item_key"></span>
+                <button style="width: 3rem;font-size: 0.8rem;">send</button>
+            </div>
+        </div>
+    </div>
 </body>
+<script>
+var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
+httpRequest.open('POST', '/v1/get/deployed/coins', true); //第二步：打开连接/***发送json格式文件必须设置请求头 ；如下 - */
+httpRequest.setRequestHeader("Content-type","application/json");//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）var obj = { name: 'zhansgan', age: 18 };
+httpRequest.send();//发送请求 将json写入send中
+// httpRequest.send(JSON.stringify({
+//     Offset:0,
+//     Limit:5,
+// }));//发送请求 将json写入send中
+/**
+ * 获取数据后的处理程序
+ */
+httpRequest.onreadystatechange = function () {//请求后的回调接口，可将请求成功后要执行的程序写在其中
+    if (httpRequest.readyState == 4 && httpRequest.status == 200) {//验证请求是否发送成功
+        var json = httpRequest.responseText;//获取到服务端返回的数据
+        console.log(json);
+    }
+};
+
+
+function addOption(){ 
+//根据id查找对象， 
+var obj=document.getElementById('mySelect'); 
+//添加一个选项 
+obj.add(new Option("文本","值")); //这个只能在IE中有效 
+obj.options.add(new Option("text","value")); //这个兼容IE与firefox 
+} 
+
+function removeAll(){ 
+var obj=document.getElementById('mySelect'); 
+obj.options.length=0; 
+} 
+</script>
+
 </html>

@@ -79,7 +79,6 @@ func CheckContractAndCreate(ctx context.Context, in *npool.CoinsInfo) (*npool.Co
 			SetRemark(in.Remark).
 			SetData(in.Data).
 			Save(ctx)
-		fmt.Println(info, err)
 
 		return err
 	})
@@ -90,11 +89,10 @@ func CheckContractAndCreate(ctx context.Context, in *npool.CoinsInfo) (*npool.Co
 	return toObj(info), nil
 }
 
-func Update(ctx context.Context, in *npool.CoinsInfo) error {
+func Update(ctx context.Context, id uuid.UUID, in *npool.CoinsInfo) error {
 	var err error
-
 	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
-		_, err = tx.CoinsInfo.UpdateOneID(uuid.MustParse(in.GetID())).
+		_, err = tx.CoinsInfo.UpdateOneID(id).
 			SetName(in.GetName()).
 			SetChainType(in.ChainType).
 			SetTokenType(in.TokenType).
@@ -161,6 +159,32 @@ func Rows(ctx context.Context, conds cruder.Conds, offset, limit int) ([]*npool.
 		}
 
 		rows, err = stm.Order(ent.Desc(coinsinfo.FieldCreatedAt)).Offset(offset).Limit(limit).All(ctx)
+		if err != nil {
+			return err
+		}
+
+		total, err = stm.Count(ctx)
+		return err
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	return toObjs(rows), total, nil
+}
+
+func All(ctx context.Context, conds cruder.Conds) ([]*npool.CoinsInfo, int, error) {
+	var err error
+	rows := []*ent.CoinsInfo{}
+	var total int
+
+	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
+		stm := tx.CoinsInfo.Query()
+		stm, err = queryFromConds(conds, stm)
+		if err != nil {
+			return err
+		}
+
+		rows, err = stm.Order(ent.Desc(coinsinfo.FieldCreatedAt)).All(ctx)
 		if err != nil {
 			return err
 		}

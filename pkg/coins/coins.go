@@ -13,5 +13,6 @@ type Contract struct {
 	Bytecode    string `json:"bytecode"`
 	CreateCode  string `json:"create_code"`
 	CreateArgs  string `json:"create_args"`
+	SourceMap   string `json:"source_map"`
 	SwarmSource string `json:"swarm_source"`
 }

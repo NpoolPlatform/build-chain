@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/fs"
 	"log"
 	"math/rand"
 	"net"
@@ -14,6 +15,7 @@ import (
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/config"
 	"github.com/NpoolPlatform/build-chain/pkg/db"
+	res "github.com/NpoolPlatform/build-chain/resource"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -72,9 +74,18 @@ var runCmd = &cli.Command{
 		if err != nil {
 			log.Fatalf("Fail to register gRPC gateway service endpoint: %v", err)
 		}
+
 		go func() {
-			if err = http.ListenAndServe(":12316", mux); err != nil {
-				log.Fatalf("Could not setup HTTP endpoint: %v", err)
+			http.Handle("/v1/", mux)
+
+			pages, err := fs.Sub(res.ResPages, "pages")
+			if err != nil {
+				log.Fatalf("failed to load pages: %v", err)
+			}
+			http.Handle("/", http.FileServer(http.FS(pages)))
+			err = http.ListenAndServe(":12317", nil)
+			if err != nil {
+				log.Fatalf("failed to setup HTTP pages: %v", err)
 			}
 		}()
 

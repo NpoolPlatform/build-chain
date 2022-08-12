@@ -2,14 +2,19 @@ package eth
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
-	"fmt"
+
+	coinsinfo_crud "github.com/NpoolPlatform/build-chain/pkg/crud/coinsinfo"
+	deployedcoin_crud "github.com/NpoolPlatform/build-chain/pkg/crud/deployedcoin"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coinsinfo"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/deployedcoin"
+	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
+	proto "github.com/NpoolPlatform/message/npool/build-chain"
 
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
-	crud "github.com/NpoolPlatform/build-chain/pkg/crud/deployedcoin"
-	res "github.com/NpoolPlatform/build-chain/resource"
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
-	proto "github.com/NpoolPlatform/message/npool/build-chain"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -32,32 +37,59 @@ func DeployTokens(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return deployErc20(ctx, client)
+	return DeployBaseErc20(ctx, client, false)
 }
 
-func deployErc20(ctx context.Context, client *rpc.Client) error {
-	constract := res.GetContract()
-	if constract == nil {
-		return ErrContractNotExist
+func hasContractCode(ctx context.Context, client *rpc.Client, contract common.Address) (bool, error) {
+	ret, err := ethclient.NewClient(client).CodeAt(ctx, contract, nil)
+	if err != nil {
+		return false, err
 	}
-	fmt.Println(constract.ERC20Coins[0].ConstuctData)
-	successNum := 0
-	for _, erc20coin := range constract.ERC20Coins {
-		contractAddr, err := DeployContract(client, erc20coin.ConstuctData)
-		if err != nil {
-			logger.Sugar().Errorf("%v-%v,%v", erc20coin.Type, erc20coin.Name, err)
+	if len(ret) == 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
+func DeployBaseErc20(ctx context.Context, client *rpc.Client, spy bool) error {
+	contract := &coins.Contract{}
+	conds := cruder.NewConds()
+	dCoinConds := cruder.NewConds()
+	conds.WithCond(coinsinfo.FieldSimilarity, cruder.EQ, SimBaseERC20)
+
+	infos, _, err := coinsinfo_crud.All(ctx, conds)
+	if err != nil {
+		return err
+	}
+	for _, info := range infos {
+		if info.Data == nil || len(info.Data) == 0 {
 			continue
 		}
-		_, err = crud.Create(ctx, &proto.DeployedCoin{
-			// Name:     erc20coin.Name,
-			// Type:     erc20coin.Type,
+		dCoinConds.WithCond(deployedcoin.FieldCoinID, cruder.EQ, info.ID)
+		dCoin, _ := deployedcoin_crud.Row(ctx, dCoinConds)
+		if dCoin != nil {
+			if ok, _ := hasContractCode(ctx, client, common.HexToAddress(dCoin.Contract)); ok {
+				continue
+			}
+		}
+
+		err = json.Unmarshal(info.Data, contract)
+		if err != nil {
+			continue
+		}
+
+		contractAddr, err := DeployContract(client, contract.CreateCode)
+		if err != nil {
+			continue
+		}
+
+		_, err = deployedcoin_crud.Create(ctx, &proto.DeployedCoin{
+			CoinID:   info.ID,
 			Contract: contractAddr.String(),
 		})
 		if err != nil {
-			logger.Sugar().Errorf("%v-%v,insert to database faild,%v", erc20coin.Type, erc20coin.Name, err)
+			continue
 		}
-		successNum++
 	}
-	logger.Sugar().Infof("%v/%v", successNum, len(constract.ERC20Coins))
 	return nil
 }
