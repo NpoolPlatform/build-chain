@@ -54,5 +54,4 @@ func TestCURD(t *testing.T) {
 		assert.Equal(t, n, 1)
 		assert.Equal(t, len(resp4), 1)
 	}
-
 }
