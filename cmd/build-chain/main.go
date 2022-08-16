@@ -30,7 +30,9 @@ func main() {
 	logDir, _ = config.LookupEnv("ENV_LOG_DIR")
 	chainType, _ = config.LookupEnv("ENV_CHAIN_TYPE")
 	endpoint, _ = config.LookupEnv("ENV_ENDPOINT")
+
 	commands := cli.Commands{runCmd}
+
 	description := fmt.Sprintf(
 		"%v service cli\nFor help on any individual command run <%v COMMAND -h>\n",
 		serviceName,
@@ -38,6 +40,10 @@ func main() {
 	)
 	banner.NewColorFigure(serviceName, "", "green", true).Print()
 	vesion, err := version.GetVersion()
+	if err != nil {
+		log.Fatalf("fail to get version, %v", err)
+	}
+
 	app := &cli.App{
 		Name:        serviceName,
 		Version:     vesion,

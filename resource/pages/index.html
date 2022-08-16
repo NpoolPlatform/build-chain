@@ -6,13 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./index.css">
+    <script src="https://unpkg.com/vue@3"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <title>npool faucet</title>
+
 </head>
 
 <body>
     <h1 style="margin-left: 1rem;color: dimgray;">Npool Faucet</h1>
     <div id="content">
-
         <div>
             <div class="item">
                 <span class="item_key"></span>
@@ -20,60 +22,99 @@
             </div>
             <div class="item">
                 <span class="item_key">Token</span>
-                <select name="cars" id="cars" style="height: 1rem;font-size: 0.8rem;">
-                    <option value="volvo">Volvo</option>
-                    <option value="saab">Saab</option>
-                    <option value="mercedes">Mercedes</option>
-                    <option value="audi">Audi</option>
+                <select name="tokens" id="tokens" v-model="selectedCoin" style="height: 1.2rem;font-size: 0.8rem;">
+                    <option value="" selected="true">select token</option>
+                    <option v-for="coin in coinsInfo" v-bind:value="coin.Contract">{{ coin.Name }}</option>
                 </select>
             </div>
             <div class="item">
                 <span class="item_key">Contract</span>
-                <input class="item_input" type="text" value="0xB8c77482e45F1F44dE1745F52C74426C631bDD52">
+                <input class="item_input" type="text" v-bind:value="selectedCoin">
             </div>
             <div class="item">
                 <span class="item_key">To</span>
-                <input class="item_input" type="text">
+                <input class="item_input" type="text" v-model="to">
+            </div>
+            <div class="item">
+                <span class="item_key">Amount</span>
+                <input class="item_input" type="text" v-model="amount">
             </div>
             <div class="item">
                 <span class="item_key"></span>
-                <button style="width: 3rem;font-size: 0.8rem;">send</button>
+                <button style="width: 3rem;font-size: 0.8rem;" @click="sendTx">send</button>
+            </div>
+            <div class="item">
+                <span class="item_key">Tx-log:</span>
+                <div class="item_input">
+                    <div v-for="log in txLog" :style="{color: log.color}" style="font-size: 0.6rem;width: 95%;">
+                        <br>
+                        To:{{log.to}} <br>Msg:{{log.msg}}
+                        <br>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </body>
+
 <script>
-var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
-httpRequest.open('POST', '/v1/get/deployed/coins', true); //第二步：打开连接/***发送json格式文件必须设置请求头 ；如下 - */
-httpRequest.setRequestHeader("Content-type","application/json");//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）var obj = { name: 'zhansgan', age: 18 };
-httpRequest.send();//发送请求 将json写入send中
-// httpRequest.send(JSON.stringify({
-//     Offset:0,
-//     Limit:5,
-// }));//发送请求 将json写入send中
-/**
- * 获取数据后的处理程序
- */
-httpRequest.onreadystatechange = function () {//请求后的回调接口，可将请求成功后要执行的程序写在其中
-    if (httpRequest.readyState == 4 && httpRequest.status == 200) {//验证请求是否发送成功
-        var json = httpRequest.responseText;//获取到服务端返回的数据
-        console.log(json);
+    const GetCoinsInfoAPI = {
+        url: "/v1/get/deployed/coins",
+        method: "POST",
+        args: null,
     }
-};
+    const FaucetAPI = {
+        url: "/v1/faucet",
+        method: "POST",
+        args: {
+            to: "",
+            amount: "",
+            contract: "",
+        },
+    }
 
 
-function addOption(){ 
-//根据id查找对象， 
-var obj=document.getElementById('mySelect'); 
-//添加一个选项 
-obj.add(new Option("文本","值")); //这个只能在IE中有效 
-obj.options.add(new Option("text","value")); //这个兼容IE与firefox 
-} 
+    const {
+        createApp
+    } = Vue
+    app = createApp({
+        data() {
+            return {
+                coinsInfo: [],
+                selectedCoin: "",
+                to:"",
+                amount:"",
+                txLog:[],
+            }
+        },
+        mounted() {
+            axios.post(GetCoinsInfoAPI.url, "")
+                .then(res => {
+                    this.coinsInfo = res.data.Infos
+                })
+                .catch(err => {
+                    alert(err);
+                })
+        },
+        methods: {
+            sendTx(event){
+                if (this.txLog.length > 10) {
+                    this.txLog.splice(10,5)
+                }
+                axios.post(FaucetAPI.url, {To:this.to,Amount:this.amount,Contract:this.selectedCoin})
+                .then(res => {
+                    this.txLog.unshift({msg:res.data.Msg,to:this.to,color:"#6699ff"})
+                })
+                .catch(err => {
+                    console.log(err)
+                    this.txLog.unshift({msg:err.response.data.message,to:this.to,color:"#ee6633"})
+                })
+            },
+        },
+    }).mount('#content')
 
-function removeAll(){ 
-var obj=document.getElementById('mySelect'); 
-obj.options.length=0; 
-} 
+
+
 </script>
 
 </html>

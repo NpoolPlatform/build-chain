@@ -6,7 +6,7 @@ import (
 
 	"time"
 
-	deployedcoin_crud "github.com/NpoolPlatform/build-chain/pkg/crud/deployedcoin"
+	deployedcoin_crud "github.com/NpoolPlatform/build-chain/pkg/crud/v1/deployedcoin"
 )
 
 func init() {

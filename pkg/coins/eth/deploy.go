@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	coinsinfo_crud "github.com/NpoolPlatform/build-chain/pkg/crud/coinsinfo"
-	deployedcoin_crud "github.com/NpoolPlatform/build-chain/pkg/crud/deployedcoin"
+	coinsinfo_crud "github.com/NpoolPlatform/build-chain/pkg/crud/v1/coinsinfo"
+	deployedcoin_crud "github.com/NpoolPlatform/build-chain/pkg/crud/v1/deployedcoin"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coinsinfo"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/deployedcoin"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
@@ -66,10 +66,12 @@ func DeployBaseErc20(ctx context.Context, client *rpc.Client, spy bool) error {
 			continue
 		}
 		dCoinConds.WithCond(deployedcoin.FieldCoinID, cruder.EQ, info.ID)
-		dCoin, _ := deployedcoin_crud.Row(ctx, dCoinConds)
-		if dCoin != nil {
-			if ok, _ := hasContractCode(ctx, client, common.HexToAddress(dCoin.Contract)); ok {
-				continue
+		dCoins, _, err := deployedcoin_crud.All(ctx, dCoinConds)
+		if dCoins != nil && len(dCoins) > 0 {
+			for _, coin := range dCoins {
+				if ok, _ := hasContractCode(ctx, client, common.HexToAddress(coin.Contract)); ok {
+					continue
+				}
 			}
 		}
 

@@ -11,7 +11,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	cli "github.com/urfave/cli/v2"
 
-	"github.com/NpoolPlatform/build-chain/api"
+	"github.com/NpoolPlatform/build-chain/api/v1"
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/config"
 	"github.com/NpoolPlatform/build-chain/pkg/db"
@@ -77,11 +77,11 @@ var runCmd = &cli.Command{
 
 		go func() {
 			http.Handle("/v1/", mux)
-
 			pages, err := fs.Sub(res.ResPages, "pages")
 			if err != nil {
 				log.Fatalf("failed to load pages: %v", err)
 			}
+
 			http.Handle("/", http.FileServer(http.FS(pages)))
 			err = http.ListenAndServe(":12317", nil)
 			if err != nil {
