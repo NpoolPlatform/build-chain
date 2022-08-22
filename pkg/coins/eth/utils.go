@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/config"
 
 	"github.com/ethereum/go-ethereum"
@@ -141,7 +142,7 @@ func getAuth(client *rpc.Client) (*bind.TransactOpts, error) {
 	}
 
 	// only support testnet
-	if chainID.Cmp(big.NewInt(1337)) != 0 {
+	if chainID.Cmp(big.NewInt(coins.TestNetChainID)) != 0 {
 		return nil, fmt.Errorf("only support testnet")
 	}
 

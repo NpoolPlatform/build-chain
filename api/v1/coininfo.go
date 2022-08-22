@@ -52,7 +52,6 @@ func coinInfoCondsToConds(conds cruder.FilterConds) (cruder.Conds, error) {
 
 func (s *Server) CreateCoinInfo(ctx context.Context, in *npool.CreateCoinInfoRequest) (*npool.CreateCoinInfoResponse, error) {
 	var err error
-	info := &npool.CoinInfo{}
 
 	if !in.Force {
 		conds := cruder.NewConds()
@@ -78,17 +77,17 @@ func (s *Server) CreateCoinInfo(ctx context.Context, in *npool.CreateCoinInfoReq
 		}
 
 		if num == 0 {
-			info, err = coininfo_crud.Create(ctx, in.Info)
+			_, err = coininfo_crud.Create(ctx, in.Info)
 		} else {
 			in.Info.ID = infos[0].ID
-			info, err = coininfo_crud.Update(ctx, in.Info)
+			_, err = coininfo_crud.Update(ctx, in.Info)
 		}
 
 		if err != nil {
 			return &npool.CreateCoinInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
 		}
 	} else {
-		info, err = coininfo_crud.Create(ctx, in.Info)
+		_, err = coininfo_crud.Create(ctx, in.Info)
 		if err != nil {
 			return &npool.CreateCoinInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
 		}
@@ -96,7 +95,7 @@ func (s *Server) CreateCoinInfo(ctx context.Context, in *npool.CreateCoinInfoReq
 
 	return &npool.CreateCoinInfoResponse{
 		Success: true,
-		Msg:     fmt.Sprintf("Contract address: %v", info.PrivateContract),
+		Msg:     fmt.Sprintf("Contract address: %v", contract),
 	}, nil
 }
 

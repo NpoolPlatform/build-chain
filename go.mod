@@ -19,6 +19,7 @@ require (
 	github.com/stretchr/testify v1.7.2
 	github.com/urfave/cli/v2 v2.11.1
 	google.golang.org/grpc v1.48.0
+	google.golang.org/protobuf v1.28.1
 )
 
 require (
@@ -81,7 +82,6 @@ require (
 	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect

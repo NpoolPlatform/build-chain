@@ -7,7 +7,6 @@ import (
 	cli "github.com/urfave/cli/v2"
 
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth"
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 )
 
 func init() {
@@ -22,15 +21,13 @@ var crawlCmd = &cli.Command{
 	Aliases: []string{"c"},
 	Usage:   "Crawl contract to private chain",
 	Before: func(ctx *cli.Context) error {
-
-		logger.Init(logger.DebugLevel, "")
 		return nil
 	},
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:        "host",
 			Aliases:     []string{"ho"},
-			Usage:       "requried, host to build-chain server",
+			Usage:       "required, host to build-chain server",
 			Required:    true,
 			Value:       "",
 			Destination: &crawlTaskInfo.Host,

@@ -17,7 +17,6 @@ import (
 	"github.com/NpoolPlatform/build-chain/pkg/config"
 	"github.com/NpoolPlatform/build-chain/pkg/db"
 	res "github.com/NpoolPlatform/build-chain/resource"
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -38,7 +37,6 @@ var runCmd = &cli.Command{
 			ChainType: chainType,
 			Endpoint:  endpoint,
 		})
-		logger.Init(logger.DebugLevel, logDir)
 		return nil
 	},
 	Flags: []cli.Flag{
@@ -76,7 +74,7 @@ var runCmd = &cli.Command{
 	},
 }
 
-func runHTTPServer(httpPort int, grpcPort int) {
+func runHTTPServer(httpPort, grpcPort int) {
 	grpcEndpoint := fmt.Sprintf(":%v", grpcPort)
 	httpEndpoint := fmt.Sprintf(":%v", httpPort)
 	mux := runtime.NewServeMux()
@@ -99,7 +97,6 @@ func runHTTPServer(httpPort int, grpcPort int) {
 	if err != nil {
 		log.Fatalf("failed to setup HTTP pages: %v", err)
 	}
-
 }
 
 func runGRPCServer(grpcPort int) {

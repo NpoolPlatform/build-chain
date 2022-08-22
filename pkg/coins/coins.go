@@ -2,9 +2,10 @@ package coins
 
 // chain name define
 const (
-	EthereumChain = "ethereum"
-	TronChain     = "tron"
-	ERC20TOKEN    = "erc20"
+	EthereumChain  = "ethereum"
+	TronChain      = "tron"
+	ERC20TOKEN     = "erc20"
+	TestNetChainID = 1337
 )
 
 type Contract struct {
