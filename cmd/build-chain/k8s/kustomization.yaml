@@ -1,0 +1,5 @@
+resources:
+  - 01-build-chain.viper.yaml
+  - 02-build-chain.yaml
+  - 03-strip-prefix.yaml
+  - 04-service-monitor.yaml

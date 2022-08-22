@@ -9,28 +9,15 @@ import (
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent"
 )
 
-// The CoinsInfoFunc type is an adapter to allow the use of ordinary
-// function as CoinsInfo mutator.
-type CoinsInfoFunc func(context.Context, *ent.CoinsInfoMutation) (ent.Value, error)
+// The CoinInfoFunc type is an adapter to allow the use of ordinary
+// function as CoinInfo mutator.
+type CoinInfoFunc func(context.Context, *ent.CoinInfoMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f CoinsInfoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.CoinsInfoMutation)
+func (f CoinInfoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CoinInfoMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CoinsInfoMutation", m)
-	}
-	return f(ctx, mv)
-}
-
-// The DeployedCoinFunc type is an adapter to allow the use of ordinary
-// function as DeployedCoin mutator.
-type DeployedCoinFunc func(context.Context, *ent.DeployedCoinMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f DeployedCoinFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.DeployedCoinMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DeployedCoinMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CoinInfoMutation", m)
 	}
 	return f(ctx, mv)
 }

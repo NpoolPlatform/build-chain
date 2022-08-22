@@ -150,52 +150,28 @@ func DenyMutationOperationRule(op ent.Op) MutationRule {
 	return OnMutationOperation(rule, op)
 }
 
-// The CoinsInfoQueryRuleFunc type is an adapter to allow the use of ordinary
+// The CoinInfoQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
-type CoinsInfoQueryRuleFunc func(context.Context, *ent.CoinsInfoQuery) error
+type CoinInfoQueryRuleFunc func(context.Context, *ent.CoinInfoQuery) error
 
 // EvalQuery return f(ctx, q).
-func (f CoinsInfoQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.CoinsInfoQuery); ok {
+func (f CoinInfoQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CoinInfoQuery); ok {
 		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CoinsInfoQuery", q)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CoinInfoQuery", q)
 }
 
-// The CoinsInfoMutationRuleFunc type is an adapter to allow the use of ordinary
+// The CoinInfoMutationRuleFunc type is an adapter to allow the use of ordinary
 // functions as a mutation rule.
-type CoinsInfoMutationRuleFunc func(context.Context, *ent.CoinsInfoMutation) error
+type CoinInfoMutationRuleFunc func(context.Context, *ent.CoinInfoMutation) error
 
 // EvalMutation calls f(ctx, m).
-func (f CoinsInfoMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
-	if m, ok := m.(*ent.CoinsInfoMutation); ok {
+func (f CoinInfoMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.CoinInfoMutation); ok {
 		return f(ctx, m)
 	}
-	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CoinsInfoMutation", m)
-}
-
-// The DeployedCoinQueryRuleFunc type is an adapter to allow the use of ordinary
-// functions as a query rule.
-type DeployedCoinQueryRuleFunc func(context.Context, *ent.DeployedCoinQuery) error
-
-// EvalQuery return f(ctx, q).
-func (f DeployedCoinQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
-	if q, ok := q.(*ent.DeployedCoinQuery); ok {
-		return f(ctx, q)
-	}
-	return Denyf("ent/privacy: unexpected query type %T, expect *ent.DeployedCoinQuery", q)
-}
-
-// The DeployedCoinMutationRuleFunc type is an adapter to allow the use of ordinary
-// functions as a mutation rule.
-type DeployedCoinMutationRuleFunc func(context.Context, *ent.DeployedCoinMutation) error
-
-// EvalMutation calls f(ctx, m).
-func (f DeployedCoinMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
-	if m, ok := m.(*ent.DeployedCoinMutation); ok {
-		return f(ctx, m)
-	}
-	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.DeployedCoinMutation", m)
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CoinInfoMutation", m)
 }
 
 type (
@@ -233,9 +209,7 @@ var _ QueryMutationRule = FilterFunc(nil)
 
 func queryFilter(q ent.Query) (Filter, error) {
 	switch q := q.(type) {
-	case *ent.CoinsInfoQuery:
-		return q.Filter(), nil
-	case *ent.DeployedCoinQuery:
+	case *ent.CoinInfoQuery:
 		return q.Filter(), nil
 	default:
 		return nil, Denyf("ent/privacy: unexpected query type %T for query filter", q)
@@ -244,9 +218,7 @@ func queryFilter(q ent.Query) (Filter, error) {
 
 func mutationFilter(m ent.Mutation) (Filter, error) {
 	switch m := m.(type) {
-	case *ent.CoinsInfoMutation:
-		return m.Filter(), nil
-	case *ent.DeployedCoinMutation:
+	case *ent.CoinInfoMutation:
 		return m.Filter(), nil
 	default:
 		return nil, Denyf("ent/privacy: unexpected mutation type %T for mutation filter", m)

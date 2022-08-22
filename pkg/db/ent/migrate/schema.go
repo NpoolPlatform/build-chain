@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	// CoinsInfosColumns holds the columns for the "coins_infos" table.
-	CoinsInfosColumns = []*schema.Column{
+	// CoinInfosColumns holds the columns for the "coin_infos" table.
+	CoinInfosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "created_at", Type: field.TypeUint32},
 		{Name: "updated_at", Type: field.TypeUint32},
@@ -17,36 +17,20 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "chain_type", Type: field.TypeString, Nullable: true, Default: ""},
 		{Name: "token_type", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "contract", Type: field.TypeString, Unique: true},
-		{Name: "similarity", Type: field.TypeInt32, Nullable: true, Default: 0},
+		{Name: "official_contract", Type: field.TypeString, Unique: true},
+		{Name: "private_contract", Type: field.TypeString, Unique: true},
 		{Name: "remark", Type: field.TypeString, Nullable: true, Default: ""},
 		{Name: "data", Type: field.TypeBytes, Nullable: true},
 	}
-	// CoinsInfosTable holds the schema information for the "coins_infos" table.
-	CoinsInfosTable = &schema.Table{
-		Name:       "coins_infos",
-		Columns:    CoinsInfosColumns,
-		PrimaryKey: []*schema.Column{CoinsInfosColumns[0]},
-	}
-	// DeployedCoinsColumns holds the columns for the "deployed_coins" table.
-	DeployedCoinsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "created_at", Type: field.TypeUint32},
-		{Name: "updated_at", Type: field.TypeUint32},
-		{Name: "deleted_at", Type: field.TypeUint32},
-		{Name: "coin_id", Type: field.TypeUUID},
-		{Name: "contract", Type: field.TypeString, Nullable: true, Default: ""},
-	}
-	// DeployedCoinsTable holds the schema information for the "deployed_coins" table.
-	DeployedCoinsTable = &schema.Table{
-		Name:       "deployed_coins",
-		Columns:    DeployedCoinsColumns,
-		PrimaryKey: []*schema.Column{DeployedCoinsColumns[0]},
+	// CoinInfosTable holds the schema information for the "coin_infos" table.
+	CoinInfosTable = &schema.Table{
+		Name:       "coin_infos",
+		Columns:    CoinInfosColumns,
+		PrimaryKey: []*schema.Column{CoinInfosColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		CoinsInfosTable,
-		DeployedCoinsTable,
+		CoinInfosTable,
 	}
 )
 

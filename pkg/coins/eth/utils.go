@@ -42,14 +42,6 @@ func UnlockCoinbase(client *rpc.Client) error {
 	return nil
 }
 
-type DeployTx struct {
-	// From     *common.Address `json:"to"`
-	GasPrice *big.Int `json:"gasPrice"`
-	Gas      uint64   `json:"gas"`
-	Value    *big.Int `json:"value"`
-	Data     []byte   `json:"data"`
-}
-
 func DeployContract(client *rpc.Client, bytecode string) (common.Address, error) {
 	ctx := context.Background()
 	backend := ethclient.NewClient(client)

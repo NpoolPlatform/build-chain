@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/fs"
 	"log"
 	"math/rand"
@@ -9,10 +10,10 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/spf13/viper"
 	cli "github.com/urfave/cli/v2"
 
 	"github.com/NpoolPlatform/build-chain/api/v1"
-	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/config"
 	"github.com/NpoolPlatform/build-chain/pkg/db"
 	res "github.com/NpoolPlatform/build-chain/resource"
@@ -66,39 +67,52 @@ var runCmd = &cli.Command{
 			return err
 		}
 
-		go coins.Run()
-
-		mux := runtime.NewServeMux()
-		opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-		err := api.RegisterGateway(mux, ":12315", opts)
-		if err != nil {
-			log.Fatalf("Fail to register gRPC gateway service endpoint: %v", err)
-		}
-
 		go func() {
-			http.Handle("/v1/", mux)
-			pages, err := fs.Sub(res.ResPages, "pages")
-			if err != nil {
-				log.Fatalf("failed to load pages: %v", err)
-			}
-
-			http.Handle("/", http.FileServer(http.FS(pages)))
-			err = http.ListenAndServe(":12317", nil)
-			if err != nil {
-				log.Fatalf("failed to setup HTTP pages: %v", err)
-			}
+			runGRPCServer(viper.GetInt(config.KeyGRPCPort))
 		}()
 
-		lis, err := net.Listen("tcp", ":12315")
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-		}
-		server := grpc.NewServer()
-		api.Register(server)
-		reflection.Register(server)
-		if err := server.Serve(lis); err != nil {
-			log.Fatalf("failed to serve: %v", err)
-		}
+		runHTTPServer(viper.GetInt(config.KeyHTTPPort), viper.GetInt(config.KeyGRPCPort))
 		return nil
 	},
+}
+
+func runHTTPServer(httpPort int, grpcPort int) {
+	grpcEndpoint := fmt.Sprintf(":%v", grpcPort)
+	httpEndpoint := fmt.Sprintf(":%v", httpPort)
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+
+	// register to gatway
+	err := api.RegisterGateway(mux, grpcEndpoint, opts)
+	if err != nil {
+		log.Fatalf("Fail to register gRPC gateway service endpoint: %v", err)
+	}
+
+	http.Handle("/v1/", mux)
+	pages, err := fs.Sub(res.ResPages, "pages")
+	if err != nil {
+		log.Fatalf("failed to load pages: %v", err)
+	}
+
+	http.Handle("/", http.FileServer(http.FS(pages)))
+	err = http.ListenAndServe(httpEndpoint, nil)
+	if err != nil {
+		log.Fatalf("failed to setup HTTP pages: %v", err)
+	}
+
+}
+
+func runGRPCServer(grpcPort int) {
+	endpoint := fmt.Sprintf(":%v", grpcPort)
+	lis, err := net.Listen("tcp", endpoint)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	server := grpc.NewServer()
+	api.Register(server)
+	reflection.Register(server)
+	if err := server.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

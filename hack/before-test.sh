@@ -8,9 +8,10 @@ PLATFORM=linux/amd64
 OUTPUT=./output
 
 mkdir -p $OUTPUT/$PLATFORM
-for service_name in `ls $(pwd)/cmd`; do
+for service_name in $(ls $(pwd)/cmd); do
     cp $(pwd)/cmd/$service_name/*.viper.yaml $OUTPUT/$PLATFORM
-    cd $OUTPUT/$PLATFORM; ./$service_name run | grep error &
+    cd $OUTPUT/$PLATFORM
+    ./$service_name run | grep error &
 done
 
-# sleep 60
+sleep 60

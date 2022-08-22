@@ -16,7 +16,7 @@ import (
 )
 
 func client() (*ent.Client, error) {
-	client, err := ent.Open("sqlite3", "buildchain.sqlite.db?mode=memory&cache=shared&_fk=1")
+	client, err := ent.Open("sqlite3", "buildchain.sqlite.db?cache=shared&_fk=1")
 	if err != nil {
 		log.Fatalf("failed opening connection to sqlite: %v", err)
 	}

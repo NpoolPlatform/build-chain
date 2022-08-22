@@ -5,8 +5,7 @@ package runtime
 import (
 	"context"
 
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coinsinfo"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/deployedcoin"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coininfo"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/schema"
 	"github.com/google/uuid"
 
@@ -18,94 +17,50 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	coinsinfoMixin := schema.CoinsInfo{}.Mixin()
-	coinsinfo.Policy = privacy.NewPolicies(coinsinfoMixin[0], schema.CoinsInfo{})
-	coinsinfo.Hooks[0] = func(next ent.Mutator) ent.Mutator {
+	coininfoMixin := schema.CoinInfo{}.Mixin()
+	coininfo.Policy = privacy.NewPolicies(coininfoMixin[0], schema.CoinInfo{})
+	coininfo.Hooks[0] = func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-			if err := coinsinfo.Policy.EvalMutation(ctx, m); err != nil {
+			if err := coininfo.Policy.EvalMutation(ctx, m); err != nil {
 				return nil, err
 			}
 			return next.Mutate(ctx, m)
 		})
 	}
-	coinsinfoMixinFields0 := coinsinfoMixin[0].Fields()
-	_ = coinsinfoMixinFields0
-	coinsinfoFields := schema.CoinsInfo{}.Fields()
-	_ = coinsinfoFields
-	// coinsinfoDescCreatedAt is the schema descriptor for created_at field.
-	coinsinfoDescCreatedAt := coinsinfoMixinFields0[0].Descriptor()
-	// coinsinfo.DefaultCreatedAt holds the default value on creation for the created_at field.
-	coinsinfo.DefaultCreatedAt = coinsinfoDescCreatedAt.Default.(func() uint32)
-	// coinsinfoDescUpdatedAt is the schema descriptor for updated_at field.
-	coinsinfoDescUpdatedAt := coinsinfoMixinFields0[1].Descriptor()
-	// coinsinfo.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	coinsinfo.DefaultUpdatedAt = coinsinfoDescUpdatedAt.Default.(func() uint32)
-	// coinsinfo.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	coinsinfo.UpdateDefaultUpdatedAt = coinsinfoDescUpdatedAt.UpdateDefault.(func() uint32)
-	// coinsinfoDescDeletedAt is the schema descriptor for deleted_at field.
-	coinsinfoDescDeletedAt := coinsinfoMixinFields0[2].Descriptor()
-	// coinsinfo.DefaultDeletedAt holds the default value on creation for the deleted_at field.
-	coinsinfo.DefaultDeletedAt = coinsinfoDescDeletedAt.Default.(func() uint32)
-	// coinsinfoDescChainType is the schema descriptor for chain_type field.
-	coinsinfoDescChainType := coinsinfoFields[2].Descriptor()
-	// coinsinfo.DefaultChainType holds the default value on creation for the chain_type field.
-	coinsinfo.DefaultChainType = coinsinfoDescChainType.Default.(string)
-	// coinsinfoDescTokenType is the schema descriptor for token_type field.
-	coinsinfoDescTokenType := coinsinfoFields[3].Descriptor()
-	// coinsinfo.DefaultTokenType holds the default value on creation for the token_type field.
-	coinsinfo.DefaultTokenType = coinsinfoDescTokenType.Default.(string)
-	// coinsinfoDescSimilarity is the schema descriptor for similarity field.
-	coinsinfoDescSimilarity := coinsinfoFields[5].Descriptor()
-	// coinsinfo.DefaultSimilarity holds the default value on creation for the similarity field.
-	coinsinfo.DefaultSimilarity = coinsinfoDescSimilarity.Default.(int32)
-	// coinsinfoDescRemark is the schema descriptor for remark field.
-	coinsinfoDescRemark := coinsinfoFields[6].Descriptor()
-	// coinsinfo.DefaultRemark holds the default value on creation for the remark field.
-	coinsinfo.DefaultRemark = coinsinfoDescRemark.Default.(string)
-	// coinsinfoDescID is the schema descriptor for id field.
-	coinsinfoDescID := coinsinfoFields[0].Descriptor()
-	// coinsinfo.DefaultID holds the default value on creation for the id field.
-	coinsinfo.DefaultID = coinsinfoDescID.Default.(func() uuid.UUID)
-	deployedcoinMixin := schema.DeployedCoin{}.Mixin()
-	deployedcoin.Policy = privacy.NewPolicies(deployedcoinMixin[0], schema.DeployedCoin{})
-	deployedcoin.Hooks[0] = func(next ent.Mutator) ent.Mutator {
-		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-			if err := deployedcoin.Policy.EvalMutation(ctx, m); err != nil {
-				return nil, err
-			}
-			return next.Mutate(ctx, m)
-		})
-	}
-	deployedcoinMixinFields0 := deployedcoinMixin[0].Fields()
-	_ = deployedcoinMixinFields0
-	deployedcoinFields := schema.DeployedCoin{}.Fields()
-	_ = deployedcoinFields
-	// deployedcoinDescCreatedAt is the schema descriptor for created_at field.
-	deployedcoinDescCreatedAt := deployedcoinMixinFields0[0].Descriptor()
-	// deployedcoin.DefaultCreatedAt holds the default value on creation for the created_at field.
-	deployedcoin.DefaultCreatedAt = deployedcoinDescCreatedAt.Default.(func() uint32)
-	// deployedcoinDescUpdatedAt is the schema descriptor for updated_at field.
-	deployedcoinDescUpdatedAt := deployedcoinMixinFields0[1].Descriptor()
-	// deployedcoin.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	deployedcoin.DefaultUpdatedAt = deployedcoinDescUpdatedAt.Default.(func() uint32)
-	// deployedcoin.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	deployedcoin.UpdateDefaultUpdatedAt = deployedcoinDescUpdatedAt.UpdateDefault.(func() uint32)
-	// deployedcoinDescDeletedAt is the schema descriptor for deleted_at field.
-	deployedcoinDescDeletedAt := deployedcoinMixinFields0[2].Descriptor()
-	// deployedcoin.DefaultDeletedAt holds the default value on creation for the deleted_at field.
-	deployedcoin.DefaultDeletedAt = deployedcoinDescDeletedAt.Default.(func() uint32)
-	// deployedcoinDescCoinID is the schema descriptor for coin_id field.
-	deployedcoinDescCoinID := deployedcoinFields[1].Descriptor()
-	// deployedcoin.DefaultCoinID holds the default value on creation for the coin_id field.
-	deployedcoin.DefaultCoinID = deployedcoinDescCoinID.Default.(func() uuid.UUID)
-	// deployedcoinDescContract is the schema descriptor for contract field.
-	deployedcoinDescContract := deployedcoinFields[2].Descriptor()
-	// deployedcoin.DefaultContract holds the default value on creation for the contract field.
-	deployedcoin.DefaultContract = deployedcoinDescContract.Default.(string)
-	// deployedcoinDescID is the schema descriptor for id field.
-	deployedcoinDescID := deployedcoinFields[0].Descriptor()
-	// deployedcoin.DefaultID holds the default value on creation for the id field.
-	deployedcoin.DefaultID = deployedcoinDescID.Default.(func() uuid.UUID)
+	coininfoMixinFields0 := coininfoMixin[0].Fields()
+	_ = coininfoMixinFields0
+	coininfoFields := schema.CoinInfo{}.Fields()
+	_ = coininfoFields
+	// coininfoDescCreatedAt is the schema descriptor for created_at field.
+	coininfoDescCreatedAt := coininfoMixinFields0[0].Descriptor()
+	// coininfo.DefaultCreatedAt holds the default value on creation for the created_at field.
+	coininfo.DefaultCreatedAt = coininfoDescCreatedAt.Default.(func() uint32)
+	// coininfoDescUpdatedAt is the schema descriptor for updated_at field.
+	coininfoDescUpdatedAt := coininfoMixinFields0[1].Descriptor()
+	// coininfo.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	coininfo.DefaultUpdatedAt = coininfoDescUpdatedAt.Default.(func() uint32)
+	// coininfo.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	coininfo.UpdateDefaultUpdatedAt = coininfoDescUpdatedAt.UpdateDefault.(func() uint32)
+	// coininfoDescDeletedAt is the schema descriptor for deleted_at field.
+	coininfoDescDeletedAt := coininfoMixinFields0[2].Descriptor()
+	// coininfo.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	coininfo.DefaultDeletedAt = coininfoDescDeletedAt.Default.(func() uint32)
+	// coininfoDescChainType is the schema descriptor for chain_type field.
+	coininfoDescChainType := coininfoFields[2].Descriptor()
+	// coininfo.DefaultChainType holds the default value on creation for the chain_type field.
+	coininfo.DefaultChainType = coininfoDescChainType.Default.(string)
+	// coininfoDescTokenType is the schema descriptor for token_type field.
+	coininfoDescTokenType := coininfoFields[3].Descriptor()
+	// coininfo.DefaultTokenType holds the default value on creation for the token_type field.
+	coininfo.DefaultTokenType = coininfoDescTokenType.Default.(string)
+	// coininfoDescRemark is the schema descriptor for remark field.
+	coininfoDescRemark := coininfoFields[6].Descriptor()
+	// coininfo.DefaultRemark holds the default value on creation for the remark field.
+	coininfo.DefaultRemark = coininfoDescRemark.Default.(string)
+	// coininfoDescID is the schema descriptor for id field.
+	coininfoDescID := coininfoFields[0].Descriptor()
+	// coininfo.DefaultID holds the default value on creation for the id field.
+	coininfo.DefaultID = coininfoDescID.Default.(func() uuid.UUID)
 }
 
 const (

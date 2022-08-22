@@ -24,7 +24,7 @@
                 <span class="item_key">Token</span>
                 <select name="tokens" id="tokens" v-model="selectedCoin" style="height: 1.2rem;font-size: 0.8rem;">
                     <option value="" selected="true">select token</option>
-                    <option v-for="coin in coinsInfo" v-bind:value="coin.Contract">{{ coin.Name }}</option>
+                    <option v-for="coin in coinsInfo" v-bind:value="coin.PrivateContract">{{ coin.Name }}</option>
                 </select>
             </div>
             <div class="item">
@@ -59,7 +59,7 @@
 
 <script>
     const GetCoinsInfoAPI = {
-        url: "/v1/get/deployed/coins",
+        url: "/v1/get/coin/infos",
         method: "POST",
         args: null,
     }

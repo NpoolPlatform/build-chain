@@ -11,8 +11,7 @@ import (
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/migrate"
 	"github.com/google/uuid"
 
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coinsinfo"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/deployedcoin"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coininfo"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -23,10 +22,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// CoinsInfo is the client for interacting with the CoinsInfo builders.
-	CoinsInfo *CoinsInfoClient
-	// DeployedCoin is the client for interacting with the DeployedCoin builders.
-	DeployedCoin *DeployedCoinClient
+	// CoinInfo is the client for interacting with the CoinInfo builders.
+	CoinInfo *CoinInfoClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -40,8 +37,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.CoinsInfo = NewCoinsInfoClient(c.config)
-	c.DeployedCoin = NewDeployedCoinClient(c.config)
+	c.CoinInfo = NewCoinInfoClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -73,10 +69,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		CoinsInfo:    NewCoinsInfoClient(cfg),
-		DeployedCoin: NewDeployedCoinClient(cfg),
+		ctx:      ctx,
+		config:   cfg,
+		CoinInfo: NewCoinInfoClient(cfg),
 	}, nil
 }
 
@@ -94,17 +89,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		CoinsInfo:    NewCoinsInfoClient(cfg),
-		DeployedCoin: NewDeployedCoinClient(cfg),
+		ctx:      ctx,
+		config:   cfg,
+		CoinInfo: NewCoinInfoClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		CoinsInfo.
+//		CoinInfo.
 //		Query().
 //		Count(ctx)
 //
@@ -127,88 +121,87 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.CoinsInfo.Use(hooks...)
-	c.DeployedCoin.Use(hooks...)
+	c.CoinInfo.Use(hooks...)
 }
 
-// CoinsInfoClient is a client for the CoinsInfo schema.
-type CoinsInfoClient struct {
+// CoinInfoClient is a client for the CoinInfo schema.
+type CoinInfoClient struct {
 	config
 }
 
-// NewCoinsInfoClient returns a client for the CoinsInfo from the given config.
-func NewCoinsInfoClient(c config) *CoinsInfoClient {
-	return &CoinsInfoClient{config: c}
+// NewCoinInfoClient returns a client for the CoinInfo from the given config.
+func NewCoinInfoClient(c config) *CoinInfoClient {
+	return &CoinInfoClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `coinsinfo.Hooks(f(g(h())))`.
-func (c *CoinsInfoClient) Use(hooks ...Hook) {
-	c.hooks.CoinsInfo = append(c.hooks.CoinsInfo, hooks...)
+// A call to `Use(f, g, h)` equals to `coininfo.Hooks(f(g(h())))`.
+func (c *CoinInfoClient) Use(hooks ...Hook) {
+	c.hooks.CoinInfo = append(c.hooks.CoinInfo, hooks...)
 }
 
-// Create returns a builder for creating a CoinsInfo entity.
-func (c *CoinsInfoClient) Create() *CoinsInfoCreate {
-	mutation := newCoinsInfoMutation(c.config, OpCreate)
-	return &CoinsInfoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a CoinInfo entity.
+func (c *CoinInfoClient) Create() *CoinInfoCreate {
+	mutation := newCoinInfoMutation(c.config, OpCreate)
+	return &CoinInfoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of CoinsInfo entities.
-func (c *CoinsInfoClient) CreateBulk(builders ...*CoinsInfoCreate) *CoinsInfoCreateBulk {
-	return &CoinsInfoCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of CoinInfo entities.
+func (c *CoinInfoClient) CreateBulk(builders ...*CoinInfoCreate) *CoinInfoCreateBulk {
+	return &CoinInfoCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for CoinsInfo.
-func (c *CoinsInfoClient) Update() *CoinsInfoUpdate {
-	mutation := newCoinsInfoMutation(c.config, OpUpdate)
-	return &CoinsInfoUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for CoinInfo.
+func (c *CoinInfoClient) Update() *CoinInfoUpdate {
+	mutation := newCoinInfoMutation(c.config, OpUpdate)
+	return &CoinInfoUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *CoinsInfoClient) UpdateOne(ci *CoinsInfo) *CoinsInfoUpdateOne {
-	mutation := newCoinsInfoMutation(c.config, OpUpdateOne, withCoinsInfo(ci))
-	return &CoinsInfoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *CoinInfoClient) UpdateOne(ci *CoinInfo) *CoinInfoUpdateOne {
+	mutation := newCoinInfoMutation(c.config, OpUpdateOne, withCoinInfo(ci))
+	return &CoinInfoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *CoinsInfoClient) UpdateOneID(id uuid.UUID) *CoinsInfoUpdateOne {
-	mutation := newCoinsInfoMutation(c.config, OpUpdateOne, withCoinsInfoID(id))
-	return &CoinsInfoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *CoinInfoClient) UpdateOneID(id uuid.UUID) *CoinInfoUpdateOne {
+	mutation := newCoinInfoMutation(c.config, OpUpdateOne, withCoinInfoID(id))
+	return &CoinInfoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for CoinsInfo.
-func (c *CoinsInfoClient) Delete() *CoinsInfoDelete {
-	mutation := newCoinsInfoMutation(c.config, OpDelete)
-	return &CoinsInfoDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for CoinInfo.
+func (c *CoinInfoClient) Delete() *CoinInfoDelete {
+	mutation := newCoinInfoMutation(c.config, OpDelete)
+	return &CoinInfoDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *CoinsInfoClient) DeleteOne(ci *CoinsInfo) *CoinsInfoDeleteOne {
+func (c *CoinInfoClient) DeleteOne(ci *CoinInfo) *CoinInfoDeleteOne {
 	return c.DeleteOneID(ci.ID)
 }
 
 // DeleteOne returns a builder for deleting the given entity by its id.
-func (c *CoinsInfoClient) DeleteOneID(id uuid.UUID) *CoinsInfoDeleteOne {
-	builder := c.Delete().Where(coinsinfo.ID(id))
+func (c *CoinInfoClient) DeleteOneID(id uuid.UUID) *CoinInfoDeleteOne {
+	builder := c.Delete().Where(coininfo.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &CoinsInfoDeleteOne{builder}
+	return &CoinInfoDeleteOne{builder}
 }
 
-// Query returns a query builder for CoinsInfo.
-func (c *CoinsInfoClient) Query() *CoinsInfoQuery {
-	return &CoinsInfoQuery{
+// Query returns a query builder for CoinInfo.
+func (c *CoinInfoClient) Query() *CoinInfoQuery {
+	return &CoinInfoQuery{
 		config: c.config,
 	}
 }
 
-// Get returns a CoinsInfo entity by its id.
-func (c *CoinsInfoClient) Get(ctx context.Context, id uuid.UUID) (*CoinsInfo, error) {
-	return c.Query().Where(coinsinfo.ID(id)).Only(ctx)
+// Get returns a CoinInfo entity by its id.
+func (c *CoinInfoClient) Get(ctx context.Context, id uuid.UUID) (*CoinInfo, error) {
+	return c.Query().Where(coininfo.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *CoinsInfoClient) GetX(ctx context.Context, id uuid.UUID) *CoinsInfo {
+func (c *CoinInfoClient) GetX(ctx context.Context, id uuid.UUID) *CoinInfo {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -217,98 +210,7 @@ func (c *CoinsInfoClient) GetX(ctx context.Context, id uuid.UUID) *CoinsInfo {
 }
 
 // Hooks returns the client hooks.
-func (c *CoinsInfoClient) Hooks() []Hook {
-	hooks := c.hooks.CoinsInfo
-	return append(hooks[:len(hooks):len(hooks)], coinsinfo.Hooks[:]...)
-}
-
-// DeployedCoinClient is a client for the DeployedCoin schema.
-type DeployedCoinClient struct {
-	config
-}
-
-// NewDeployedCoinClient returns a client for the DeployedCoin from the given config.
-func NewDeployedCoinClient(c config) *DeployedCoinClient {
-	return &DeployedCoinClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `deployedcoin.Hooks(f(g(h())))`.
-func (c *DeployedCoinClient) Use(hooks ...Hook) {
-	c.hooks.DeployedCoin = append(c.hooks.DeployedCoin, hooks...)
-}
-
-// Create returns a builder for creating a DeployedCoin entity.
-func (c *DeployedCoinClient) Create() *DeployedCoinCreate {
-	mutation := newDeployedCoinMutation(c.config, OpCreate)
-	return &DeployedCoinCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of DeployedCoin entities.
-func (c *DeployedCoinClient) CreateBulk(builders ...*DeployedCoinCreate) *DeployedCoinCreateBulk {
-	return &DeployedCoinCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for DeployedCoin.
-func (c *DeployedCoinClient) Update() *DeployedCoinUpdate {
-	mutation := newDeployedCoinMutation(c.config, OpUpdate)
-	return &DeployedCoinUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *DeployedCoinClient) UpdateOne(dc *DeployedCoin) *DeployedCoinUpdateOne {
-	mutation := newDeployedCoinMutation(c.config, OpUpdateOne, withDeployedCoin(dc))
-	return &DeployedCoinUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *DeployedCoinClient) UpdateOneID(id uuid.UUID) *DeployedCoinUpdateOne {
-	mutation := newDeployedCoinMutation(c.config, OpUpdateOne, withDeployedCoinID(id))
-	return &DeployedCoinUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for DeployedCoin.
-func (c *DeployedCoinClient) Delete() *DeployedCoinDelete {
-	mutation := newDeployedCoinMutation(c.config, OpDelete)
-	return &DeployedCoinDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *DeployedCoinClient) DeleteOne(dc *DeployedCoin) *DeployedCoinDeleteOne {
-	return c.DeleteOneID(dc.ID)
-}
-
-// DeleteOne returns a builder for deleting the given entity by its id.
-func (c *DeployedCoinClient) DeleteOneID(id uuid.UUID) *DeployedCoinDeleteOne {
-	builder := c.Delete().Where(deployedcoin.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &DeployedCoinDeleteOne{builder}
-}
-
-// Query returns a query builder for DeployedCoin.
-func (c *DeployedCoinClient) Query() *DeployedCoinQuery {
-	return &DeployedCoinQuery{
-		config: c.config,
-	}
-}
-
-// Get returns a DeployedCoin entity by its id.
-func (c *DeployedCoinClient) Get(ctx context.Context, id uuid.UUID) (*DeployedCoin, error) {
-	return c.Query().Where(deployedcoin.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *DeployedCoinClient) GetX(ctx context.Context, id uuid.UUID) *DeployedCoin {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// Hooks returns the client hooks.
-func (c *DeployedCoinClient) Hooks() []Hook {
-	hooks := c.hooks.DeployedCoin
-	return append(hooks[:len(hooks):len(hooks)], deployedcoin.Hooks[:]...)
+func (c *CoinInfoClient) Hooks() []Hook {
+	hooks := c.hooks.CoinInfo
+	return append(hooks[:len(hooks):len(hooks)], coininfo.Hooks[:]...)
 }

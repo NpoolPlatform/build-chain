@@ -4,40 +4,62 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-
-	coinsinfo_crud "github.com/NpoolPlatform/build-chain/pkg/crud/v1/coinsinfo"
-	deployedcoin_crud "github.com/NpoolPlatform/build-chain/pkg/crud/v1/deployedcoin"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coinsinfo"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/deployedcoin"
-	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
-	proto "github.com/NpoolPlatform/message/npool/build-chain"
+	"math/big"
+	"time"
 
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
+	"github.com/NpoolPlatform/build-chain/pkg/coins/eth/erc20"
+	npool "github.com/NpoolPlatform/message/npool/build-chain"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-var ErrContractNotExist = errors.New("contract data do not exist")
+var (
+	ErrContractNotExist       = errors.New("contract data do not exist")
+	ErrTrasferFailed          = errors.New("trasfer failed")
+	testAmount          int64 = 60
+	toAddr                    = common.HexToAddress("0xBcE9e4a7aa5eF6998439618771D4754596045b76")
+	maxRetries                = 5
+)
 
-func init() {
-	err := coins.Register(coins.EthereumChain, DeployTokens)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func DeployTokens(ctx context.Context) error {
+func DeployToken(ctx context.Context, in *npool.CoinInfo) (string, error) {
 	client, err := Client()
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer client.Close()
+
 	err = UnlockCoinbase(client)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return DeployBaseErc20(ctx, client, false)
+
+	// TODO: support other erc20 token
+	contract, err := DeployBaseErc20(ctx, client, in)
+	if err != nil {
+		return "", err
+	}
+
+	for i := 0; i <= maxRetries; i++ {
+		ok, err := hasContractCode(ctx, client, contract)
+		if ok || err != nil {
+			continue
+		}
+		// to prevent to be ban ip
+		time.Sleep(time.Second)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	err = TransferSpy(ctx, client, contract)
+	if err != nil {
+		return "", err
+	}
+
+	return contract.String(), nil
 }
 
 func hasContractCode(ctx context.Context, client *rpc.Client, contract common.Address) (bool, error) {
@@ -51,47 +73,52 @@ func hasContractCode(ctx context.Context, client *rpc.Client, contract common.Ad
 	return true, nil
 }
 
-func DeployBaseErc20(ctx context.Context, client *rpc.Client, spy bool) error {
+func DeployBaseErc20(ctx context.Context, client *rpc.Client, in *npool.CoinInfo) (common.Address, error) {
 	contract := &coins.Contract{}
-	conds := cruder.NewConds()
-	dCoinConds := cruder.NewConds()
-	conds.WithCond(coinsinfo.FieldSimilarity, cruder.EQ, SimBaseERC20)
+	contractAddr := common.Address{}
+	err := json.Unmarshal(in.Data, contract)
+	if err != nil {
+		return contractAddr, err
+	}
 
-	infos, _, err := coinsinfo_crud.All(ctx, conds)
+	contractAddr, err = DeployContract(client, contract.CreateCode)
+	if err != nil {
+		return contractAddr, err
+	}
+
+	return contractAddr, nil
+}
+
+func TransferSpy(ctx context.Context, client *rpc.Client, contract common.Address) error {
+	auth, err := GetAuth(client)
 	if err != nil {
 		return err
 	}
-	for _, info := range infos {
-		if info.Data == nil || len(info.Data) == 0 {
-			continue
-		}
-		dCoinConds.WithCond(deployedcoin.FieldCoinID, cruder.EQ, info.ID)
-		dCoins, _, err := deployedcoin_crud.All(ctx, dCoinConds)
-		if dCoins != nil && len(dCoins) > 0 {
-			for _, coin := range dCoins {
-				if ok, _ := hasContractCode(ctx, client, common.HexToAddress(coin.Contract)); ok {
-					continue
-				}
-			}
-		}
 
-		err = json.Unmarshal(info.Data, contract)
-		if err != nil {
-			continue
-		}
+	token, err := erc20.NewErc20(contract, ethclient.NewClient(client))
+	if err != nil {
+		return err
+	}
 
-		contractAddr, err := DeployContract(client, contract.CreateCode)
-		if err != nil {
-			continue
-		}
+	_, err = token.Transfer(auth, toAddr, big.NewInt(testAmount))
+	if err != nil {
+		return err
+	}
 
-		_, err = deployedcoin_crud.Create(ctx, &proto.DeployedCoin{
-			CoinID:   info.ID,
-			Contract: contractAddr.String(),
-		})
-		if err != nil {
+	// wait utile to the account
+	var balance *big.Int
+	for i := 0; i <= maxRetries; i++ {
+		balance, err = token.BalanceOf(nil, toAddr)
+		if balance.Int64() != 0 || err != nil {
 			continue
 		}
+		time.Sleep(time.Second)
+	}
+	if err != nil {
+		return err
+	}
+	if balance.Int64() == 0 {
+		return ErrTrasferFailed
 	}
 	return nil
 }

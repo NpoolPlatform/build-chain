@@ -32,14 +32,19 @@ func ERC20Faucet(contract, to common.Address, value *big.Float) (*types.Transact
 		return nil, err
 	}
 
+	err = UnlockCoinbase(client)
+	if err != nil {
+		return nil, err
+	}
+
 	deci, err := token.Decimals(nil)
 	if err != nil {
 		return nil, err
 	}
 	_value := new(big.Int)
 	big.NewFloat(0).Mul(value, big.NewFloat(math.Pow10(int(deci)))).Int(_value)
-
-	return token.Transfer(auth, to, _value)
+	tx, err := token.Transfer(auth, to, _value)
+	return tx, err
 }
 
 func ERC20Balance(contract, acc common.Address) (*big.Int, error) {

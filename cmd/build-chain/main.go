@@ -31,7 +31,7 @@ func main() {
 	chainType, _ = config.LookupEnv("ENV_CHAIN_TYPE")
 	endpoint, _ = config.LookupEnv("ENV_ENDPOINT")
 
-	commands := cli.Commands{runCmd}
+	commands := cli.Commands{runCmd, crawlCmd}
 
 	description := fmt.Sprintf(
 		"%v service cli\nFor help on any individual command run <%v COMMAND -h>\n",
