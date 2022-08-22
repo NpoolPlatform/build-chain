@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/NpoolPlatform/build-chain/pkg/coins/eth"
 	"github.com/NpoolPlatform/build-chain/pkg/config"
-	servicename "github.com/NpoolPlatform/build-chain/pkg/service-name"
+	"github.com/NpoolPlatform/build-chain/pkg/servicename"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/go-service-framework/pkg/version"
 
