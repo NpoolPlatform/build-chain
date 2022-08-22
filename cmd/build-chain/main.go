@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	serviceName = "Build Chain"
+	serviceName = "BuildChain"
 	usageText   = "Build Chain Service"
 )
 

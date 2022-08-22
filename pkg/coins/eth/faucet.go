@@ -1,12 +1,10 @@
 package eth
 
 import (
-	"math"
-	"math/big"
-
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/shopspring/decimal"
 
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth/erc20"
 	"github.com/ethereum/go-ethereum/common"
@@ -14,7 +12,7 @@ import (
 
 const Ten = 10
 
-func ERC20Faucet(contract, to common.Address, value *big.Float) (*types.Transaction, error) {
+func ERC20Faucet(contract, to common.Address, amount string) (*types.Transaction, error) {
 	client, err := Client()
 	if err != nil {
 		return nil, err
@@ -41,24 +39,40 @@ func ERC20Faucet(contract, to common.Address, value *big.Float) (*types.Transact
 	if err != nil {
 		return nil, err
 	}
-	_value := new(big.Int)
-	big.NewFloat(0).Mul(value, big.NewFloat(math.Pow10(int(deci)))).Int(_value)
+	decimal.DivisionPrecision = int(deci)
+	_decimal, err := decimal.NewFromString(amount)
+	if err != nil {
+		return nil, err
+	}
+
+	_value := _decimal.Mul(decimal.NewFromInt(Ten).Pow(decimal.NewFromInt(int64(deci)))).BigInt()
+
 	tx, err := token.Transfer(auth, to, _value)
 	return tx, err
 }
 
-func ERC20Balance(contract, acc common.Address) (*big.Int, error) {
+func ERC20Balance(contract, acc common.Address) (string, error) {
 	client, err := Client()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer client.Close()
 
 	ethcli := ethclient.NewClient(client)
 	token, err := erc20.NewErc20(contract, ethcli)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return token.BalanceOf(&bind.CallOpts{Pending: true}, acc)
+	ret, err := token.BalanceOf(&bind.CallOpts{Pending: true}, acc)
+	if err != nil {
+		return "", err
+	}
+	deci, err := token.Decimals(nil)
+	if err != nil {
+		return "", err
+	}
+	decimal.DivisionPrecision = int(deci)
+	value := decimal.NewFromBigInt(ret, 0).Div(decimal.NewFromInt(Ten).Pow(decimal.NewFromInt(int64(deci)))).String()
+	return value, nil
 }

@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"fmt"
-	"math/big"
 
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth"
 	npool "github.com/NpoolPlatform/message/npool/build-chain"
@@ -23,12 +22,7 @@ func (s *Server) Faucet(ctx context.Context, in *npool.FaucetRequst) (*npool.Fau
 		return ret, status.Error(codes.InvalidArgument, "to address invalid")
 	}
 
-	amount, ok := big.NewFloat(0).SetString(in.Amount)
-	if !ok {
-		return ret, status.Error(codes.InvalidArgument, "amount invalid, cannot parse to big.float")
-	}
-
-	tx, err := eth.ERC20Faucet(common.HexToAddress(in.Contract), common.HexToAddress(in.To), amount)
+	tx, err := eth.ERC20Faucet(common.HexToAddress(in.Contract), common.HexToAddress(in.To), in.Amount)
 	if err != nil {
 		return ret, status.Error(codes.InvalidArgument, fmt.Sprintf("faild to air-drop,%v", err))
 	}

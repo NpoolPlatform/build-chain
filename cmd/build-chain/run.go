@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/spf13/viper"
 	cli "github.com/urfave/cli/v2"
 
 	"github.com/NpoolPlatform/build-chain/api/v1"
@@ -31,6 +30,10 @@ var runCmd = &cli.Command{
 	Aliases: []string{"r"},
 	Usage:   "Run Build Chain daemon",
 	Before: func(ctx *cli.Context) error {
+		err := config.Init("./", serviceName)
+		if err != nil {
+			panic(fmt.Sprintf("fail to init config %v: %v", serviceName, err))
+		}
 		// TODO: elegent set or get env
 		config.SetENV(&config.ENVInfo{
 			LogDir:    logDir,
@@ -66,10 +69,10 @@ var runCmd = &cli.Command{
 		}
 
 		go func() {
-			runGRPCServer(viper.GetInt(config.KeyGRPCPort))
+			runGRPCServer(config.GetInt(config.KeyGRPCPort))
 		}()
 
-		runHTTPServer(viper.GetInt(config.KeyHTTPPort), viper.GetInt(config.KeyGRPCPort))
+		runHTTPServer(config.GetInt(config.KeyHTTPPort), config.GetInt(config.KeyGRPCPort))
 		return nil
 	},
 }

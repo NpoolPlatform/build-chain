@@ -6,7 +6,7 @@ require (
 	entgo.io/ent v0.11.2
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20220726144547-41aefeaea336
 	github.com/NpoolPlatform/libent-cruder v0.0.0-20220801075201-cab5db8b6290
-	github.com/NpoolPlatform/message v0.0.0-20220822024412-a51f0d337e4d
+	github.com/NpoolPlatform/message v0.0.0-20220822064224-beb589deb314
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/ethereum/go-ethereum v1.10.21
@@ -15,6 +15,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.0
 	github.com/mattn/go-sqlite3 v1.14.14
+	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.7.2
 	github.com/urfave/cli/v2 v2.11.1

@@ -14,4 +14,4 @@ for service_name in $(ls $(pwd)/cmd); do
     ./$service_name run | grep error &
 done
 
-sleep 60
+sleep 2

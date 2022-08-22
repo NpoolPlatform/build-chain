@@ -62,13 +62,13 @@ func TestCURD(t *testing.T) {
 	conds.WithCond(coininfo.FieldName, cruder.EQ, coinsInfo.Name)
 	resp6, n, err := Rows(ctx, conds, 0, 1)
 	if assert.Nil(t, err) {
-		assert.Equal(t, n, 2)
+		assert.Equal(t, n, 1)
 		assert.Equal(t, len(resp6), 1)
 	}
 
 	resp7, n, err := All(ctx, conds)
 	if assert.Nil(t, err) {
-		assert.Equal(t, n, 2)
-		assert.Equal(t, len(resp7), 2)
+		assert.Equal(t, n, 1)
+		assert.Equal(t, len(resp7), 1)
 	}
 }
