@@ -6,7 +6,6 @@ import (
 	"os"
 
 	_ "github.com/NpoolPlatform/build-chain/pkg/coins/eth"
-	"github.com/NpoolPlatform/build-chain/pkg/config"
 	"github.com/NpoolPlatform/build-chain/pkg/servicename"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/go-service-framework/pkg/version"
@@ -21,16 +20,11 @@ const (
 )
 
 var (
-	chainType string
-	logDir    string
-	endpoint  string
+	logDir      string
+	ethEndpoint string
 )
 
 func main() {
-	logDir, _ = config.LookupEnv("ENV_LOG_DIR")
-	chainType, _ = config.LookupEnv("ENV_CHAIN_TYPE")
-	endpoint, _ = config.LookupEnv("ENV_ENDPOINT")
-
 	commands := cli.Commands{runCmd, crawlCmd}
 
 	description := fmt.Sprintf(

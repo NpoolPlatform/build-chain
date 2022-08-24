@@ -161,7 +161,7 @@ func Client() (*rpc.Client, error) {
 	if client == nil {
 		endpoint := ""
 		if config.GetENV() != nil {
-			endpoint = config.GetENV().Endpoint
+			endpoint = config.GetENV().EthEndpoint
 		}
 
 		if endpoint == "" {

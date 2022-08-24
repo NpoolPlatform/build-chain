@@ -9,6 +9,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	proto "github.com/NpoolPlatform/message/npool/build-chain"
@@ -190,34 +191,36 @@ func Task(info *CrawlTaskInfo) {
 		addresses = append(addresses, info.Contract)
 	}
 
-	fmt.Println("start deploy contract,please wait for end", info.Contract)
+	fmt.Println("start deploy contract,please wait for end !")
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>")
 	successNum := 0
-	allChan := make(chan struct{}, len(addresses))
+	var wg sync.WaitGroup
 	for _, v := range addresses {
-		coininfo, err := CrawlContractInfo(v)
+		// prevent to be baned
 		time.Sleep(CrawlInterval)
-		if err != nil {
-			fmt.Printf("faild: address %v not support, %v\n", v, err)
-			allChan <- struct{}{}
-			continue
-		}
-		go func() {
+
+		wg.Add(1)
+		go func(contractAddr string) {
+			defer wg.Done()
+			coininfo, err := CrawlContractInfo(contractAddr)
+			if err != nil {
+				fmt.Printf("faild: address %v not support, %v\n", contractAddr, err)
+				return
+			}
 			resp, err := bcConn.CreateCoinInfo(ctx, &proto.CreateCoinInfoRequest{
 				Force: info.Force,
 				Info:  coininfo,
 			})
 			if err != nil {
 				fmt.Printf("faild: token %v, %v\n", coininfo.Name, err)
-				allChan <- struct{}{}
+
 				return
 			}
 			successNum++
 			fmt.Printf("success: token %v, %v\n", coininfo.Name, resp.Msg)
-			allChan <- struct{}{}
-		}()
+		}(v)
 	}
-	for i := 0; i < len(addresses); i++ {
-		<-allChan
-	}
+	wg.Wait()
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>")
 	fmt.Printf("deploy end,found %v,success %v\n", len(addresses), successNum)
 }

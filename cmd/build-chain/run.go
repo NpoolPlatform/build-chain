@@ -36,31 +36,20 @@ var runCmd = &cli.Command{
 		}
 		// TODO: elegent set or get env
 		config.SetENV(&config.ENVInfo{
-			LogDir:    logDir,
-			ChainType: chainType,
-			Endpoint:  endpoint,
+			LogDir:      logDir,
+			EthEndpoint: ethEndpoint,
 		})
 		return nil
 	},
 	Flags: []cli.Flag{
-		// proxy address
 		&cli.StringFlag{
-			Name:        "chainType",
-			Aliases:     []string{"c"},
-			Usage:       "chain type",
-			EnvVars:     []string{"ENV_CHAIN_TYPE"},
-			Required:    true,
-			Value:       "",
-			Destination: &chainType,
-		},
-		&cli.StringFlag{
-			Name:        "endpoint",
-			Aliases:     []string{"e"},
-			Usage:       "chain`s endpoint",
-			EnvVars:     []string{"ENV_ENDPOINT"},
+			Name:        "eth-endpoint",
+			Aliases:     []string{"ee"},
+			Usage:       "ethereum`s endpoint",
+			EnvVars:     []string{"ENV_ETH_ENDPOINT"},
 			Required:    false,
 			Value:       "",
-			Destination: &endpoint,
+			Destination: &ethEndpoint,
 		},
 	},
 	Action: func(c *cli.Context) error {

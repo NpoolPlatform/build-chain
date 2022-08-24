@@ -67,9 +67,8 @@ func GetInt(key string) int {
 var global *ENVInfo
 
 type ENVInfo struct {
-	ChainType string
-	LogDir    string
-	Endpoint  string
+	LogDir      string
+	EthEndpoint string
 }
 
 func LookupEnv(key string) (string, bool) {

@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -13,6 +15,10 @@ import (
 )
 
 func TestAll(t *testing.T) {
+	if runByGithubAction, err := strconv.ParseBool(os.Getenv("RUN_BY_GITHUB_ACTION")); err == nil && runByGithubAction {
+		return
+	}
+
 	host := "127.0.0.1:50491"
 	eth.Task(&eth.CrawlTaskInfo{
 		Host:      host,
@@ -41,6 +47,7 @@ func TestAll(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, faucetResp.Success, true)
 	}
+
 	time.Sleep(3 * time.Second)
 	for _, info := range resp.Infos {
 		ret, err := eth.ERC20Balance(common.HexToAddress(info.PrivateContract), common.HexToAddress(to))
