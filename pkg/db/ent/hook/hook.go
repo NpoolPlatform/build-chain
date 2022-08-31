@@ -9,15 +9,15 @@ import (
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent"
 )
 
-// The CoinInfoFunc type is an adapter to allow the use of ordinary
-// function as CoinInfo mutator.
-type CoinInfoFunc func(context.Context, *ent.CoinInfoMutation) (ent.Value, error)
+// The TokenInfoFunc type is an adapter to allow the use of ordinary
+// function as TokenInfo mutator.
+type TokenInfoFunc func(context.Context, *ent.TokenInfoMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f CoinInfoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.CoinInfoMutation)
+func (f TokenInfoFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TokenInfoMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CoinInfoMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TokenInfoMutation", m)
 	}
 	return f(ctx, mv)
 }

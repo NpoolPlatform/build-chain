@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	// CoinInfosColumns holds the columns for the "coin_infos" table.
-	CoinInfosColumns = []*schema.Column{
+	// TokenInfosColumns holds the columns for the "token_infos" table.
+	TokenInfosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "created_at", Type: field.TypeUint32},
 		{Name: "updated_at", Type: field.TypeUint32},
@@ -17,20 +17,22 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "chain_type", Type: field.TypeString, Nullable: true, Default: ""},
 		{Name: "token_type", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "unit", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "decimal", Type: field.TypeString, Nullable: true, Default: ""},
 		{Name: "official_contract", Type: field.TypeString, Unique: true},
 		{Name: "private_contract", Type: field.TypeString, Unique: true},
 		{Name: "remark", Type: field.TypeString, Nullable: true, Default: ""},
 		{Name: "data", Type: field.TypeBytes, Nullable: true},
 	}
-	// CoinInfosTable holds the schema information for the "coin_infos" table.
-	CoinInfosTable = &schema.Table{
-		Name:       "coin_infos",
-		Columns:    CoinInfosColumns,
-		PrimaryKey: []*schema.Column{CoinInfosColumns[0]},
+	// TokenInfosTable holds the schema information for the "token_infos" table.
+	TokenInfosTable = &schema.Table{
+		Name:       "token_infos",
+		Columns:    TokenInfosColumns,
+		PrimaryKey: []*schema.Column{TokenInfosColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		CoinInfosTable,
+		TokenInfosTable,
 	}
 )
 

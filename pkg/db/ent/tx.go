@@ -12,8 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
-	// CoinInfo is the client for interacting with the CoinInfo builders.
-	CoinInfo *CoinInfoClient
+	// TokenInfo is the client for interacting with the TokenInfo builders.
+	TokenInfo *TokenInfoClient
 
 	// lazily loaded.
 	client     *Client
@@ -149,7 +149,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
-	tx.CoinInfo = NewCoinInfoClient(tx.config)
+	tx.TokenInfo = NewTokenInfoClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
@@ -159,7 +159,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: CoinInfo.QueryXXX(), the query will be executed
+// applies a query, for example: TokenInfo.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

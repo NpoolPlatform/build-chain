@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coininfo"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -16,25 +16,27 @@ var schemaGraph = func() *sqlgraph.Schema {
 	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 1)}
 	graph.Nodes[0] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
-			Table:   coininfo.Table,
-			Columns: coininfo.Columns,
+			Table:   tokeninfo.Table,
+			Columns: tokeninfo.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeUUID,
-				Column: coininfo.FieldID,
+				Column: tokeninfo.FieldID,
 			},
 		},
-		Type: "CoinInfo",
+		Type: "TokenInfo",
 		Fields: map[string]*sqlgraph.FieldSpec{
-			coininfo.FieldCreatedAt:        {Type: field.TypeUint32, Column: coininfo.FieldCreatedAt},
-			coininfo.FieldUpdatedAt:        {Type: field.TypeUint32, Column: coininfo.FieldUpdatedAt},
-			coininfo.FieldDeletedAt:        {Type: field.TypeUint32, Column: coininfo.FieldDeletedAt},
-			coininfo.FieldName:             {Type: field.TypeString, Column: coininfo.FieldName},
-			coininfo.FieldChainType:        {Type: field.TypeString, Column: coininfo.FieldChainType},
-			coininfo.FieldTokenType:        {Type: field.TypeString, Column: coininfo.FieldTokenType},
-			coininfo.FieldOfficialContract: {Type: field.TypeString, Column: coininfo.FieldOfficialContract},
-			coininfo.FieldPrivateContract:  {Type: field.TypeString, Column: coininfo.FieldPrivateContract},
-			coininfo.FieldRemark:           {Type: field.TypeString, Column: coininfo.FieldRemark},
-			coininfo.FieldData:             {Type: field.TypeBytes, Column: coininfo.FieldData},
+			tokeninfo.FieldCreatedAt:        {Type: field.TypeUint32, Column: tokeninfo.FieldCreatedAt},
+			tokeninfo.FieldUpdatedAt:        {Type: field.TypeUint32, Column: tokeninfo.FieldUpdatedAt},
+			tokeninfo.FieldDeletedAt:        {Type: field.TypeUint32, Column: tokeninfo.FieldDeletedAt},
+			tokeninfo.FieldName:             {Type: field.TypeString, Column: tokeninfo.FieldName},
+			tokeninfo.FieldChainType:        {Type: field.TypeString, Column: tokeninfo.FieldChainType},
+			tokeninfo.FieldTokenType:        {Type: field.TypeString, Column: tokeninfo.FieldTokenType},
+			tokeninfo.FieldUnit:             {Type: field.TypeString, Column: tokeninfo.FieldUnit},
+			tokeninfo.FieldDecimal:          {Type: field.TypeString, Column: tokeninfo.FieldDecimal},
+			tokeninfo.FieldOfficialContract: {Type: field.TypeString, Column: tokeninfo.FieldOfficialContract},
+			tokeninfo.FieldPrivateContract:  {Type: field.TypeString, Column: tokeninfo.FieldPrivateContract},
+			tokeninfo.FieldRemark:           {Type: field.TypeString, Column: tokeninfo.FieldRemark},
+			tokeninfo.FieldData:             {Type: field.TypeBytes, Column: tokeninfo.FieldData},
 		},
 	}
 	return graph
@@ -47,33 +49,33 @@ type predicateAdder interface {
 }
 
 // addPredicate implements the predicateAdder interface.
-func (ciq *CoinInfoQuery) addPredicate(pred func(s *sql.Selector)) {
-	ciq.predicates = append(ciq.predicates, pred)
+func (tiq *TokenInfoQuery) addPredicate(pred func(s *sql.Selector)) {
+	tiq.predicates = append(tiq.predicates, pred)
 }
 
-// Filter returns a Filter implementation to apply filters on the CoinInfoQuery builder.
-func (ciq *CoinInfoQuery) Filter() *CoinInfoFilter {
-	return &CoinInfoFilter{config: ciq.config, predicateAdder: ciq}
+// Filter returns a Filter implementation to apply filters on the TokenInfoQuery builder.
+func (tiq *TokenInfoQuery) Filter() *TokenInfoFilter {
+	return &TokenInfoFilter{config: tiq.config, predicateAdder: tiq}
 }
 
 // addPredicate implements the predicateAdder interface.
-func (m *CoinInfoMutation) addPredicate(pred func(s *sql.Selector)) {
+func (m *TokenInfoMutation) addPredicate(pred func(s *sql.Selector)) {
 	m.predicates = append(m.predicates, pred)
 }
 
-// Filter returns an entql.Where implementation to apply filters on the CoinInfoMutation builder.
-func (m *CoinInfoMutation) Filter() *CoinInfoFilter {
-	return &CoinInfoFilter{config: m.config, predicateAdder: m}
+// Filter returns an entql.Where implementation to apply filters on the TokenInfoMutation builder.
+func (m *TokenInfoMutation) Filter() *TokenInfoFilter {
+	return &TokenInfoFilter{config: m.config, predicateAdder: m}
 }
 
-// CoinInfoFilter provides a generic filtering capability at runtime for CoinInfoQuery.
-type CoinInfoFilter struct {
+// TokenInfoFilter provides a generic filtering capability at runtime for TokenInfoQuery.
+type TokenInfoFilter struct {
 	predicateAdder
 	config
 }
 
 // Where applies the entql predicate on the query filter.
-func (f *CoinInfoFilter) Where(p entql.P) {
+func (f *TokenInfoFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
 		if err := schemaGraph.EvalP(schemaGraph.Nodes[0].Type, p, s); err != nil {
 			s.AddError(err)
@@ -82,56 +84,66 @@ func (f *CoinInfoFilter) Where(p entql.P) {
 }
 
 // WhereID applies the entql [16]byte predicate on the id field.
-func (f *CoinInfoFilter) WhereID(p entql.ValueP) {
-	f.Where(p.Field(coininfo.FieldID))
+func (f *TokenInfoFilter) WhereID(p entql.ValueP) {
+	f.Where(p.Field(tokeninfo.FieldID))
 }
 
 // WhereCreatedAt applies the entql uint32 predicate on the created_at field.
-func (f *CoinInfoFilter) WhereCreatedAt(p entql.Uint32P) {
-	f.Where(p.Field(coininfo.FieldCreatedAt))
+func (f *TokenInfoFilter) WhereCreatedAt(p entql.Uint32P) {
+	f.Where(p.Field(tokeninfo.FieldCreatedAt))
 }
 
 // WhereUpdatedAt applies the entql uint32 predicate on the updated_at field.
-func (f *CoinInfoFilter) WhereUpdatedAt(p entql.Uint32P) {
-	f.Where(p.Field(coininfo.FieldUpdatedAt))
+func (f *TokenInfoFilter) WhereUpdatedAt(p entql.Uint32P) {
+	f.Where(p.Field(tokeninfo.FieldUpdatedAt))
 }
 
 // WhereDeletedAt applies the entql uint32 predicate on the deleted_at field.
-func (f *CoinInfoFilter) WhereDeletedAt(p entql.Uint32P) {
-	f.Where(p.Field(coininfo.FieldDeletedAt))
+func (f *TokenInfoFilter) WhereDeletedAt(p entql.Uint32P) {
+	f.Where(p.Field(tokeninfo.FieldDeletedAt))
 }
 
 // WhereName applies the entql string predicate on the name field.
-func (f *CoinInfoFilter) WhereName(p entql.StringP) {
-	f.Where(p.Field(coininfo.FieldName))
+func (f *TokenInfoFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(tokeninfo.FieldName))
 }
 
 // WhereChainType applies the entql string predicate on the chain_type field.
-func (f *CoinInfoFilter) WhereChainType(p entql.StringP) {
-	f.Where(p.Field(coininfo.FieldChainType))
+func (f *TokenInfoFilter) WhereChainType(p entql.StringP) {
+	f.Where(p.Field(tokeninfo.FieldChainType))
 }
 
 // WhereTokenType applies the entql string predicate on the token_type field.
-func (f *CoinInfoFilter) WhereTokenType(p entql.StringP) {
-	f.Where(p.Field(coininfo.FieldTokenType))
+func (f *TokenInfoFilter) WhereTokenType(p entql.StringP) {
+	f.Where(p.Field(tokeninfo.FieldTokenType))
+}
+
+// WhereUnit applies the entql string predicate on the unit field.
+func (f *TokenInfoFilter) WhereUnit(p entql.StringP) {
+	f.Where(p.Field(tokeninfo.FieldUnit))
+}
+
+// WhereDecimal applies the entql string predicate on the decimal field.
+func (f *TokenInfoFilter) WhereDecimal(p entql.StringP) {
+	f.Where(p.Field(tokeninfo.FieldDecimal))
 }
 
 // WhereOfficialContract applies the entql string predicate on the official_contract field.
-func (f *CoinInfoFilter) WhereOfficialContract(p entql.StringP) {
-	f.Where(p.Field(coininfo.FieldOfficialContract))
+func (f *TokenInfoFilter) WhereOfficialContract(p entql.StringP) {
+	f.Where(p.Field(tokeninfo.FieldOfficialContract))
 }
 
 // WherePrivateContract applies the entql string predicate on the private_contract field.
-func (f *CoinInfoFilter) WherePrivateContract(p entql.StringP) {
-	f.Where(p.Field(coininfo.FieldPrivateContract))
+func (f *TokenInfoFilter) WherePrivateContract(p entql.StringP) {
+	f.Where(p.Field(tokeninfo.FieldPrivateContract))
 }
 
 // WhereRemark applies the entql string predicate on the remark field.
-func (f *CoinInfoFilter) WhereRemark(p entql.StringP) {
-	f.Where(p.Field(coininfo.FieldRemark))
+func (f *TokenInfoFilter) WhereRemark(p entql.StringP) {
+	f.Where(p.Field(tokeninfo.FieldRemark))
 }
 
 // WhereData applies the entql []byte predicate on the data field.
-func (f *CoinInfoFilter) WhereData(p entql.BytesP) {
-	f.Where(p.Field(coininfo.FieldData))
+func (f *TokenInfoFilter) WhereData(p entql.BytesP) {
+	f.Where(p.Field(tokeninfo.FieldData))
 }

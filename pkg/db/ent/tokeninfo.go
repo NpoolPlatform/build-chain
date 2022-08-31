@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coininfo"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/google/uuid"
 )
 
-// CoinInfo is the model entity for the CoinInfo schema.
-type CoinInfo struct {
+// TokenInfo is the model entity for the TokenInfo schema.
+type TokenInfo struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
@@ -28,6 +28,10 @@ type CoinInfo struct {
 	ChainType string `json:"chain_type,omitempty"`
 	// TokenType holds the value of the "token_type" field.
 	TokenType string `json:"token_type,omitempty"`
+	// Unit holds the value of the "unit" field.
+	Unit string `json:"unit,omitempty"`
+	// Decimal holds the value of the "decimal" field.
+	Decimal string `json:"decimal,omitempty"`
 	// OfficialContract holds the value of the "official_contract" field.
 	OfficialContract string `json:"official_contract,omitempty"`
 	// PrivateContract holds the value of the "private_contract" field.
@@ -39,165 +43,183 @@ type CoinInfo struct {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*CoinInfo) scanValues(columns []string) ([]interface{}, error) {
+func (*TokenInfo) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case coininfo.FieldData:
+		case tokeninfo.FieldData:
 			values[i] = new([]byte)
-		case coininfo.FieldCreatedAt, coininfo.FieldUpdatedAt, coininfo.FieldDeletedAt:
+		case tokeninfo.FieldCreatedAt, tokeninfo.FieldUpdatedAt, tokeninfo.FieldDeletedAt:
 			values[i] = new(sql.NullInt64)
-		case coininfo.FieldName, coininfo.FieldChainType, coininfo.FieldTokenType, coininfo.FieldOfficialContract, coininfo.FieldPrivateContract, coininfo.FieldRemark:
+		case tokeninfo.FieldName, tokeninfo.FieldChainType, tokeninfo.FieldTokenType, tokeninfo.FieldUnit, tokeninfo.FieldDecimal, tokeninfo.FieldOfficialContract, tokeninfo.FieldPrivateContract, tokeninfo.FieldRemark:
 			values[i] = new(sql.NullString)
-		case coininfo.FieldID:
+		case tokeninfo.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type CoinInfo", columns[i])
+			return nil, fmt.Errorf("unexpected column %q for type TokenInfo", columns[i])
 		}
 	}
 	return values, nil
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the CoinInfo fields.
-func (ci *CoinInfo) assignValues(columns []string, values []interface{}) error {
+// to the TokenInfo fields.
+func (ti *TokenInfo) assignValues(columns []string, values []interface{}) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case coininfo.FieldID:
+		case tokeninfo.FieldID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
-				ci.ID = *value
+				ti.ID = *value
 			}
-		case coininfo.FieldCreatedAt:
+		case tokeninfo.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				ci.CreatedAt = uint32(value.Int64)
+				ti.CreatedAt = uint32(value.Int64)
 			}
-		case coininfo.FieldUpdatedAt:
+		case tokeninfo.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				ci.UpdatedAt = uint32(value.Int64)
+				ti.UpdatedAt = uint32(value.Int64)
 			}
-		case coininfo.FieldDeletedAt:
+		case tokeninfo.FieldDeletedAt:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
 			} else if value.Valid {
-				ci.DeletedAt = uint32(value.Int64)
+				ti.DeletedAt = uint32(value.Int64)
 			}
-		case coininfo.FieldName:
+		case tokeninfo.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				ci.Name = value.String
+				ti.Name = value.String
 			}
-		case coininfo.FieldChainType:
+		case tokeninfo.FieldChainType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field chain_type", values[i])
 			} else if value.Valid {
-				ci.ChainType = value.String
+				ti.ChainType = value.String
 			}
-		case coininfo.FieldTokenType:
+		case tokeninfo.FieldTokenType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field token_type", values[i])
 			} else if value.Valid {
-				ci.TokenType = value.String
+				ti.TokenType = value.String
 			}
-		case coininfo.FieldOfficialContract:
+		case tokeninfo.FieldUnit:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field unit", values[i])
+			} else if value.Valid {
+				ti.Unit = value.String
+			}
+		case tokeninfo.FieldDecimal:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field decimal", values[i])
+			} else if value.Valid {
+				ti.Decimal = value.String
+			}
+		case tokeninfo.FieldOfficialContract:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field official_contract", values[i])
 			} else if value.Valid {
-				ci.OfficialContract = value.String
+				ti.OfficialContract = value.String
 			}
-		case coininfo.FieldPrivateContract:
+		case tokeninfo.FieldPrivateContract:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field private_contract", values[i])
 			} else if value.Valid {
-				ci.PrivateContract = value.String
+				ti.PrivateContract = value.String
 			}
-		case coininfo.FieldRemark:
+		case tokeninfo.FieldRemark:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field remark", values[i])
 			} else if value.Valid {
-				ci.Remark = value.String
+				ti.Remark = value.String
 			}
-		case coininfo.FieldData:
+		case tokeninfo.FieldData:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field data", values[i])
 			} else if value != nil {
-				ci.Data = *value
+				ti.Data = *value
 			}
 		}
 	}
 	return nil
 }
 
-// Update returns a builder for updating this CoinInfo.
-// Note that you need to call CoinInfo.Unwrap() before calling this method if this CoinInfo
+// Update returns a builder for updating this TokenInfo.
+// Note that you need to call TokenInfo.Unwrap() before calling this method if this TokenInfo
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (ci *CoinInfo) Update() *CoinInfoUpdateOne {
-	return (&CoinInfoClient{config: ci.config}).UpdateOne(ci)
+func (ti *TokenInfo) Update() *TokenInfoUpdateOne {
+	return (&TokenInfoClient{config: ti.config}).UpdateOne(ti)
 }
 
-// Unwrap unwraps the CoinInfo entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the TokenInfo entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (ci *CoinInfo) Unwrap() *CoinInfo {
-	_tx, ok := ci.config.driver.(*txDriver)
+func (ti *TokenInfo) Unwrap() *TokenInfo {
+	_tx, ok := ti.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: CoinInfo is not a transactional entity")
+		panic("ent: TokenInfo is not a transactional entity")
 	}
-	ci.config.driver = _tx.drv
-	return ci
+	ti.config.driver = _tx.drv
+	return ti
 }
 
 // String implements the fmt.Stringer.
-func (ci *CoinInfo) String() string {
+func (ti *TokenInfo) String() string {
 	var builder strings.Builder
-	builder.WriteString("CoinInfo(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", ci.ID))
+	builder.WriteString("TokenInfo(")
+	builder.WriteString(fmt.Sprintf("id=%v, ", ti.ID))
 	builder.WriteString("created_at=")
-	builder.WriteString(fmt.Sprintf("%v", ci.CreatedAt))
+	builder.WriteString(fmt.Sprintf("%v", ti.CreatedAt))
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
-	builder.WriteString(fmt.Sprintf("%v", ci.UpdatedAt))
+	builder.WriteString(fmt.Sprintf("%v", ti.UpdatedAt))
 	builder.WriteString(", ")
 	builder.WriteString("deleted_at=")
-	builder.WriteString(fmt.Sprintf("%v", ci.DeletedAt))
+	builder.WriteString(fmt.Sprintf("%v", ti.DeletedAt))
 	builder.WriteString(", ")
 	builder.WriteString("name=")
-	builder.WriteString(ci.Name)
+	builder.WriteString(ti.Name)
 	builder.WriteString(", ")
 	builder.WriteString("chain_type=")
-	builder.WriteString(ci.ChainType)
+	builder.WriteString(ti.ChainType)
 	builder.WriteString(", ")
 	builder.WriteString("token_type=")
-	builder.WriteString(ci.TokenType)
+	builder.WriteString(ti.TokenType)
+	builder.WriteString(", ")
+	builder.WriteString("unit=")
+	builder.WriteString(ti.Unit)
+	builder.WriteString(", ")
+	builder.WriteString("decimal=")
+	builder.WriteString(ti.Decimal)
 	builder.WriteString(", ")
 	builder.WriteString("official_contract=")
-	builder.WriteString(ci.OfficialContract)
+	builder.WriteString(ti.OfficialContract)
 	builder.WriteString(", ")
 	builder.WriteString("private_contract=")
-	builder.WriteString(ci.PrivateContract)
+	builder.WriteString(ti.PrivateContract)
 	builder.WriteString(", ")
 	builder.WriteString("remark=")
-	builder.WriteString(ci.Remark)
+	builder.WriteString(ti.Remark)
 	builder.WriteString(", ")
 	builder.WriteString("data=")
-	builder.WriteString(fmt.Sprintf("%v", ci.Data))
+	builder.WriteString(fmt.Sprintf("%v", ti.Data))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// CoinInfos is a parsable slice of CoinInfo.
-type CoinInfos []*CoinInfo
+// TokenInfos is a parsable slice of TokenInfo.
+type TokenInfos []*TokenInfo
 
-func (ci CoinInfos) config(cfg config) {
-	for _i := range ci {
-		ci[_i].config = cfg
+func (ti TokenInfos) config(cfg config) {
+	for _i := range ti {
+		ti[_i].config = cfg
 	}
 }

@@ -24,7 +24,7 @@ var (
 	maxRetries                = 5
 )
 
-func DeployToken(ctx context.Context, in *npool.CoinInfo) (string, error) {
+func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
 	client, err := Client()
 	if err != nil {
 		return "", err
@@ -73,7 +73,7 @@ func hasContractCode(ctx context.Context, client *rpc.Client, contract common.Ad
 	return true, nil
 }
 
-func DeployBaseErc20(ctx context.Context, client *rpc.Client, in *npool.CoinInfo) (common.Address, error) {
+func DeployBaseErc20(ctx context.Context, client *rpc.Client, in *npool.TokenInfo) (common.Address, error) {
 	contract := &coins.Contract{}
 	contractAddr := common.Address{}
 	err := json.Unmarshal(in.Data, contract)

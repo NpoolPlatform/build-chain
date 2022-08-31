@@ -1,4 +1,4 @@
-package coininfo
+package tokeninfo
 
 import (
 	"context"
@@ -7,22 +7,24 @@ import (
 
 	"github.com/NpoolPlatform/build-chain/pkg/db"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coininfo"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	npool "github.com/NpoolPlatform/message/npool/build-chain"
 
 	"github.com/google/uuid"
 )
 
-func toObj(coin *ent.CoinInfo) *npool.CoinInfo {
+func toObj(coin *ent.TokenInfo) *npool.TokenInfo {
 	if coin == nil {
 		return nil
 	}
-	return &npool.CoinInfo{
+	return &npool.TokenInfo{
 		ID:               coin.ID.String(),
 		Name:             coin.Name,
 		ChainType:        coin.ChainType,
 		TokenType:        coin.TokenType,
+		Unit:             coin.Unit,
+		Decimal:          coin.Decimal,
 		OfficialContract: coin.OfficialContract,
 		PrivateContract:  coin.PrivateContract,
 		Remark:           coin.Remark,
@@ -30,23 +32,25 @@ func toObj(coin *ent.CoinInfo) *npool.CoinInfo {
 	}
 }
 
-func toObjs(coins []*ent.CoinInfo) []*npool.CoinInfo {
-	_coins := []*npool.CoinInfo{}
+func toObjs(coins []*ent.TokenInfo) []*npool.TokenInfo {
+	_coins := []*npool.TokenInfo{}
 	for _, v := range coins {
 		_coins = append(_coins, toObj(v))
 	}
 	return _coins
 }
 
-func Create(ctx context.Context, in *npool.CoinInfo) (*npool.CoinInfo, error) {
-	var info *ent.CoinInfo
+func Create(ctx context.Context, in *npool.TokenInfo) (*npool.TokenInfo, error) {
+	var info *ent.TokenInfo
 	var err error
 
 	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
-		info, err = tx.CoinInfo.Create().
+		info, err = tx.TokenInfo.Create().
 			SetName(in.GetName()).
 			SetChainType(in.ChainType).
 			SetTokenType(in.TokenType).
+			SetUnit(in.Unit).
+			SetDecimal(in.Decimal).
 			SetOfficialContract(in.OfficialContract).
 			SetPrivateContract(in.PrivateContract).
 			SetRemark(in.Remark).
@@ -61,17 +65,19 @@ func Create(ctx context.Context, in *npool.CoinInfo) (*npool.CoinInfo, error) {
 	return toObj(info), nil
 }
 
-func Update(ctx context.Context, in *npool.CoinInfo) (*npool.CoinInfo, error) {
-	var ret *ent.CoinInfo
+func Update(ctx context.Context, in *npool.TokenInfo) (*npool.TokenInfo, error) {
+	var ret *ent.TokenInfo
 	id, err := uuid.Parse(in.ID)
 	if err != nil {
 		return nil, err
 	}
 	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
-		ret, err = tx.CoinInfo.UpdateOneID(id).
+		ret, err = tx.TokenInfo.UpdateOneID(id).
 			SetName(in.GetName()).
 			SetChainType(in.ChainType).
 			SetTokenType(in.TokenType).
+			SetUnit(in.Unit).
+			SetDecimal(in.Decimal).
 			SetOfficialContract(in.OfficialContract).
 			SetPrivateContract(in.PrivateContract).
 			SetRemark(in.Remark).
@@ -82,12 +88,12 @@ func Update(ctx context.Context, in *npool.CoinInfo) (*npool.CoinInfo, error) {
 	return toObj(ret), err
 }
 
-func Row(ctx context.Context, id uuid.UUID) (*npool.CoinInfo, error) {
-	var info *ent.CoinInfo
+func Row(ctx context.Context, id uuid.UUID) (*npool.TokenInfo, error) {
+	var info *ent.TokenInfo
 	var err error
 
 	err = db.WithClient(ctx, func(_ctx context.Context, cli *ent.Client) error {
-		info, err = cli.CoinInfo.Query().Where(coininfo.ID(id)).Only(_ctx)
+		info, err = cli.TokenInfo.Query().Where(tokeninfo.ID(id)).Only(_ctx)
 		return err
 	})
 	if err != nil {
@@ -97,19 +103,19 @@ func Row(ctx context.Context, id uuid.UUID) (*npool.CoinInfo, error) {
 	return toObj(info), nil
 }
 
-func Rows(ctx context.Context, conds cruder.Conds, offset, limit int) ([]*npool.CoinInfo, int, error) {
+func Rows(ctx context.Context, conds cruder.Conds, offset, limit int) ([]*npool.TokenInfo, int, error) {
 	var err error
-	rows := []*ent.CoinInfo{}
+	rows := []*ent.TokenInfo{}
 	var total int
 
 	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
-		stm := tx.CoinInfo.Query()
+		stm := tx.TokenInfo.Query()
 		stm, err = queryFromConds(conds, stm)
 		if err != nil {
 			return err
 		}
 
-		rows, err = stm.Order(ent.Desc(coininfo.FieldCreatedAt)).Offset(offset).Limit(limit).All(ctx)
+		rows, err = stm.Order(ent.Desc(tokeninfo.FieldCreatedAt)).Offset(offset).Limit(limit).All(ctx)
 		if err != nil {
 			return err
 		}
@@ -123,19 +129,19 @@ func Rows(ctx context.Context, conds cruder.Conds, offset, limit int) ([]*npool.
 	return toObjs(rows), total, nil
 }
 
-func All(ctx context.Context, conds cruder.Conds) ([]*npool.CoinInfo, int, error) {
+func All(ctx context.Context, conds cruder.Conds) ([]*npool.TokenInfo, int, error) {
 	var err error
-	rows := []*ent.CoinInfo{}
+	rows := []*ent.TokenInfo{}
 	var total int
 
 	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
-		stm := tx.CoinInfo.Query()
+		stm := tx.TokenInfo.Query()
 		stm, err = queryFromConds(conds, stm)
 		if err != nil {
 			return err
 		}
 
-		rows, err = stm.Order(ent.Desc(coininfo.FieldCreatedAt)).All(ctx)
+		rows, err = stm.Order(ent.Desc(tokeninfo.FieldCreatedAt)).All(ctx)
 		if err != nil {
 			return err
 		}
@@ -150,59 +156,71 @@ func All(ctx context.Context, conds cruder.Conds) ([]*npool.CoinInfo, int, error
 }
 
 //nolint
-func queryFromConds(conds cruder.Conds, stm *ent.CoinInfoQuery) (*ent.CoinInfoQuery, error) {
+func queryFromConds(conds cruder.Conds, stm *ent.TokenInfoQuery) (*ent.TokenInfoQuery, error) {
 	for k, v := range conds {
 		switch k {
-		case coininfo.FieldID:
+		case tokeninfo.FieldID:
 			id, err := cruder.AnyTypeUUID(v.Val)
 			if err != nil {
 				return nil, fmt.Errorf("invalid ID: %v", err)
 			}
-			stm = stm.Where(coininfo.ID(id))
-		case coininfo.FieldName:
+			stm = stm.Where(tokeninfo.ID(id))
+		case tokeninfo.FieldName:
 			name, err := cruder.AnyTypeString(v.Val)
 			if err != nil {
 				return nil, fmt.Errorf("invalid AppID: %v", err)
 			}
-			stm = stm.Where(coininfo.Name(name))
-		case coininfo.FieldChainType:
+			stm = stm.Where(tokeninfo.Name(name))
+		case tokeninfo.FieldChainType:
 			chainType, err := cruder.AnyTypeString(v.Val)
 			if err != nil {
 				return nil, fmt.Errorf("invalid cointypeid: %v", err)
 			}
-			stm = stm.Where(coininfo.ChainType(chainType))
-		case coininfo.FieldTokenType:
+			stm = stm.Where(tokeninfo.ChainType(chainType))
+		case tokeninfo.FieldTokenType:
 			tokenType, err := cruder.AnyTypeString(v.Val)
 			if err != nil {
 				return nil, fmt.Errorf("invalid UsedFor: %v", err)
 			}
-			stm = stm.Where(coininfo.TokenType(tokenType))
-		case coininfo.FieldOfficialContract:
+			stm = stm.Where(tokeninfo.TokenType(tokenType))
+		case tokeninfo.FieldUnit:
+			unit, err := cruder.AnyTypeString(v.Val)
+			if err != nil {
+				return nil, fmt.Errorf("invalid cointypeid: %v", err)
+			}
+			stm = stm.Where(tokeninfo.Unit(unit))
+		case tokeninfo.FieldDecimal:
+			decimal, err := cruder.AnyTypeString(v.Val)
+			if err != nil {
+				return nil, fmt.Errorf("invalid UsedFor: %v", err)
+			}
+			stm = stm.Where(tokeninfo.Decimal(decimal))
+		case tokeninfo.FieldOfficialContract:
 			contract, err := cruder.AnyTypeString(v.Val)
 			if err != nil {
 				return nil, fmt.Errorf("invalid Message: %v", err)
 			}
-			stm = stm.Where(coininfo.OfficialContract(contract))
-		case coininfo.FieldPrivateContract:
+			stm = stm.Where(tokeninfo.OfficialContract(contract))
+		case tokeninfo.FieldPrivateContract:
 			contract, err := cruder.AnyTypeString(v.Val)
 			if err != nil {
 				return nil, fmt.Errorf("invalid Title: %v", err)
 			}
-			stm = stm.Where(coininfo.PrivateContract(contract))
-		case coininfo.FieldRemark:
+			stm = stm.Where(tokeninfo.PrivateContract(contract))
+		case tokeninfo.FieldRemark:
 			remark, err := cruder.AnyTypeString(v.Val)
 			if err != nil {
 				return nil, fmt.Errorf("invalid Title: %v", err)
 			}
-			stm = stm.Where(coininfo.Remark(remark))
-		case coininfo.FieldData:
+			stm = stm.Where(tokeninfo.Remark(remark))
+		case tokeninfo.FieldData:
 			data, err := AnyTypeBytes(v.Val)
 			if err != nil {
 				return nil, fmt.Errorf("invalid Title: %v", err)
 			}
-			stm = stm.Where(coininfo.Data(data))
+			stm = stm.Where(tokeninfo.Data(data))
 		default:
-			return nil, fmt.Errorf("invalid CoinInfo field")
+			return nil, fmt.Errorf("invalid TokenInfo field")
 		}
 	}
 

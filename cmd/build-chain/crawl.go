@@ -82,7 +82,7 @@ var crawlCmd = &cli.Command{
 		},
 	},
 	Action: func(c *cli.Context) error {
-		eth.Task(crawlTaskInfo)
+		eth.Crawl(crawlTaskInfo)
 		return nil
 	},
 }

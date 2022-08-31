@@ -5,8 +5,8 @@ package runtime
 import (
 	"context"
 
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coininfo"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/schema"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/google/uuid"
 
 	"entgo.io/ent"
@@ -17,50 +17,58 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	coininfoMixin := schema.CoinInfo{}.Mixin()
-	coininfo.Policy = privacy.NewPolicies(coininfoMixin[0], schema.CoinInfo{})
-	coininfo.Hooks[0] = func(next ent.Mutator) ent.Mutator {
+	tokeninfoMixin := schema.TokenInfo{}.Mixin()
+	tokeninfo.Policy = privacy.NewPolicies(tokeninfoMixin[0], schema.TokenInfo{})
+	tokeninfo.Hooks[0] = func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-			if err := coininfo.Policy.EvalMutation(ctx, m); err != nil {
+			if err := tokeninfo.Policy.EvalMutation(ctx, m); err != nil {
 				return nil, err
 			}
 			return next.Mutate(ctx, m)
 		})
 	}
-	coininfoMixinFields0 := coininfoMixin[0].Fields()
-	_ = coininfoMixinFields0
-	coininfoFields := schema.CoinInfo{}.Fields()
-	_ = coininfoFields
-	// coininfoDescCreatedAt is the schema descriptor for created_at field.
-	coininfoDescCreatedAt := coininfoMixinFields0[0].Descriptor()
-	// coininfo.DefaultCreatedAt holds the default value on creation for the created_at field.
-	coininfo.DefaultCreatedAt = coininfoDescCreatedAt.Default.(func() uint32)
-	// coininfoDescUpdatedAt is the schema descriptor for updated_at field.
-	coininfoDescUpdatedAt := coininfoMixinFields0[1].Descriptor()
-	// coininfo.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	coininfo.DefaultUpdatedAt = coininfoDescUpdatedAt.Default.(func() uint32)
-	// coininfo.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	coininfo.UpdateDefaultUpdatedAt = coininfoDescUpdatedAt.UpdateDefault.(func() uint32)
-	// coininfoDescDeletedAt is the schema descriptor for deleted_at field.
-	coininfoDescDeletedAt := coininfoMixinFields0[2].Descriptor()
-	// coininfo.DefaultDeletedAt holds the default value on creation for the deleted_at field.
-	coininfo.DefaultDeletedAt = coininfoDescDeletedAt.Default.(func() uint32)
-	// coininfoDescChainType is the schema descriptor for chain_type field.
-	coininfoDescChainType := coininfoFields[2].Descriptor()
-	// coininfo.DefaultChainType holds the default value on creation for the chain_type field.
-	coininfo.DefaultChainType = coininfoDescChainType.Default.(string)
-	// coininfoDescTokenType is the schema descriptor for token_type field.
-	coininfoDescTokenType := coininfoFields[3].Descriptor()
-	// coininfo.DefaultTokenType holds the default value on creation for the token_type field.
-	coininfo.DefaultTokenType = coininfoDescTokenType.Default.(string)
-	// coininfoDescRemark is the schema descriptor for remark field.
-	coininfoDescRemark := coininfoFields[6].Descriptor()
-	// coininfo.DefaultRemark holds the default value on creation for the remark field.
-	coininfo.DefaultRemark = coininfoDescRemark.Default.(string)
-	// coininfoDescID is the schema descriptor for id field.
-	coininfoDescID := coininfoFields[0].Descriptor()
-	// coininfo.DefaultID holds the default value on creation for the id field.
-	coininfo.DefaultID = coininfoDescID.Default.(func() uuid.UUID)
+	tokeninfoMixinFields0 := tokeninfoMixin[0].Fields()
+	_ = tokeninfoMixinFields0
+	tokeninfoFields := schema.TokenInfo{}.Fields()
+	_ = tokeninfoFields
+	// tokeninfoDescCreatedAt is the schema descriptor for created_at field.
+	tokeninfoDescCreatedAt := tokeninfoMixinFields0[0].Descriptor()
+	// tokeninfo.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tokeninfo.DefaultCreatedAt = tokeninfoDescCreatedAt.Default.(func() uint32)
+	// tokeninfoDescUpdatedAt is the schema descriptor for updated_at field.
+	tokeninfoDescUpdatedAt := tokeninfoMixinFields0[1].Descriptor()
+	// tokeninfo.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tokeninfo.DefaultUpdatedAt = tokeninfoDescUpdatedAt.Default.(func() uint32)
+	// tokeninfo.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tokeninfo.UpdateDefaultUpdatedAt = tokeninfoDescUpdatedAt.UpdateDefault.(func() uint32)
+	// tokeninfoDescDeletedAt is the schema descriptor for deleted_at field.
+	tokeninfoDescDeletedAt := tokeninfoMixinFields0[2].Descriptor()
+	// tokeninfo.DefaultDeletedAt holds the default value on creation for the deleted_at field.
+	tokeninfo.DefaultDeletedAt = tokeninfoDescDeletedAt.Default.(func() uint32)
+	// tokeninfoDescChainType is the schema descriptor for chain_type field.
+	tokeninfoDescChainType := tokeninfoFields[2].Descriptor()
+	// tokeninfo.DefaultChainType holds the default value on creation for the chain_type field.
+	tokeninfo.DefaultChainType = tokeninfoDescChainType.Default.(string)
+	// tokeninfoDescTokenType is the schema descriptor for token_type field.
+	tokeninfoDescTokenType := tokeninfoFields[3].Descriptor()
+	// tokeninfo.DefaultTokenType holds the default value on creation for the token_type field.
+	tokeninfo.DefaultTokenType = tokeninfoDescTokenType.Default.(string)
+	// tokeninfoDescUnit is the schema descriptor for unit field.
+	tokeninfoDescUnit := tokeninfoFields[4].Descriptor()
+	// tokeninfo.DefaultUnit holds the default value on creation for the unit field.
+	tokeninfo.DefaultUnit = tokeninfoDescUnit.Default.(string)
+	// tokeninfoDescDecimal is the schema descriptor for decimal field.
+	tokeninfoDescDecimal := tokeninfoFields[5].Descriptor()
+	// tokeninfo.DefaultDecimal holds the default value on creation for the decimal field.
+	tokeninfo.DefaultDecimal = tokeninfoDescDecimal.Default.(string)
+	// tokeninfoDescRemark is the schema descriptor for remark field.
+	tokeninfoDescRemark := tokeninfoFields[8].Descriptor()
+	// tokeninfo.DefaultRemark holds the default value on creation for the remark field.
+	tokeninfo.DefaultRemark = tokeninfoDescRemark.Default.(string)
+	// tokeninfoDescID is the schema descriptor for id field.
+	tokeninfoDescID := tokeninfoFields[0].Descriptor()
+	// tokeninfo.DefaultID holds the default value on creation for the id field.
+	tokeninfo.DefaultID = tokeninfoDescID.Default.(func() uuid.UUID)
 }
 
 const (

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/coininfo"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/predicate"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/google/uuid"
 
 	"entgo.io/ent"
@@ -24,11 +24,11 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCoinInfo = "CoinInfo"
+	TypeTokenInfo = "TokenInfo"
 )
 
-// CoinInfoMutation represents an operation that mutates the CoinInfo nodes in the graph.
-type CoinInfoMutation struct {
+// TokenInfoMutation represents an operation that mutates the TokenInfo nodes in the graph.
+type TokenInfoMutation struct {
 	config
 	op                Op
 	typ               string
@@ -42,27 +42,29 @@ type CoinInfoMutation struct {
 	name              *string
 	chain_type        *string
 	token_type        *string
+	unit              *string
+	decimal           *string
 	official_contract *string
 	private_contract  *string
 	remark            *string
 	data              *[]byte
 	clearedFields     map[string]struct{}
 	done              bool
-	oldValue          func(context.Context) (*CoinInfo, error)
-	predicates        []predicate.CoinInfo
+	oldValue          func(context.Context) (*TokenInfo, error)
+	predicates        []predicate.TokenInfo
 }
 
-var _ ent.Mutation = (*CoinInfoMutation)(nil)
+var _ ent.Mutation = (*TokenInfoMutation)(nil)
 
-// coininfoOption allows management of the mutation configuration using functional options.
-type coininfoOption func(*CoinInfoMutation)
+// tokeninfoOption allows management of the mutation configuration using functional options.
+type tokeninfoOption func(*TokenInfoMutation)
 
-// newCoinInfoMutation creates new mutation for the CoinInfo entity.
-func newCoinInfoMutation(c config, op Op, opts ...coininfoOption) *CoinInfoMutation {
-	m := &CoinInfoMutation{
+// newTokenInfoMutation creates new mutation for the TokenInfo entity.
+func newTokenInfoMutation(c config, op Op, opts ...tokeninfoOption) *TokenInfoMutation {
+	m := &TokenInfoMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeCoinInfo,
+		typ:           TypeTokenInfo,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -71,20 +73,20 @@ func newCoinInfoMutation(c config, op Op, opts ...coininfoOption) *CoinInfoMutat
 	return m
 }
 
-// withCoinInfoID sets the ID field of the mutation.
-func withCoinInfoID(id uuid.UUID) coininfoOption {
-	return func(m *CoinInfoMutation) {
+// withTokenInfoID sets the ID field of the mutation.
+func withTokenInfoID(id uuid.UUID) tokeninfoOption {
+	return func(m *TokenInfoMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *CoinInfo
+			value *TokenInfo
 		)
-		m.oldValue = func(ctx context.Context) (*CoinInfo, error) {
+		m.oldValue = func(ctx context.Context) (*TokenInfo, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().CoinInfo.Get(ctx, id)
+					value, err = m.Client().TokenInfo.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -93,10 +95,10 @@ func withCoinInfoID(id uuid.UUID) coininfoOption {
 	}
 }
 
-// withCoinInfo sets the old CoinInfo of the mutation.
-func withCoinInfo(node *CoinInfo) coininfoOption {
-	return func(m *CoinInfoMutation) {
-		m.oldValue = func(context.Context) (*CoinInfo, error) {
+// withTokenInfo sets the old TokenInfo of the mutation.
+func withTokenInfo(node *TokenInfo) tokeninfoOption {
+	return func(m *TokenInfoMutation) {
+		m.oldValue = func(context.Context) (*TokenInfo, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -105,7 +107,7 @@ func withCoinInfo(node *CoinInfo) coininfoOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m CoinInfoMutation) Client() *Client {
+func (m TokenInfoMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -113,7 +115,7 @@ func (m CoinInfoMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m CoinInfoMutation) Tx() (*Tx, error) {
+func (m TokenInfoMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -123,14 +125,14 @@ func (m CoinInfoMutation) Tx() (*Tx, error) {
 }
 
 // SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of CoinInfo entities.
-func (m *CoinInfoMutation) SetID(id uuid.UUID) {
+// operation is only accepted on creation of TokenInfo entities.
+func (m *TokenInfoMutation) SetID(id uuid.UUID) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *CoinInfoMutation) ID() (id uuid.UUID, exists bool) {
+func (m *TokenInfoMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -141,7 +143,7 @@ func (m *CoinInfoMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *CoinInfoMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *TokenInfoMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -150,20 +152,20 @@ func (m *CoinInfoMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().CoinInfo.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().TokenInfo.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (m *CoinInfoMutation) SetCreatedAt(u uint32) {
+func (m *TokenInfoMutation) SetCreatedAt(u uint32) {
 	m.created_at = &u
 	m.addcreated_at = nil
 }
 
 // CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *CoinInfoMutation) CreatedAt() (r uint32, exists bool) {
+func (m *TokenInfoMutation) CreatedAt() (r uint32, exists bool) {
 	v := m.created_at
 	if v == nil {
 		return
@@ -171,10 +173,10 @@ func (m *CoinInfoMutation) CreatedAt() (r uint32, exists bool) {
 	return *v, true
 }
 
-// OldCreatedAt returns the old "created_at" field's value of the CoinInfo entity.
-// If the CoinInfo object wasn't provided to the builder, the object is fetched from the database.
+// OldCreatedAt returns the old "created_at" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CoinInfoMutation) OldCreatedAt(ctx context.Context) (v uint32, err error) {
+func (m *TokenInfoMutation) OldCreatedAt(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
 	}
@@ -189,7 +191,7 @@ func (m *CoinInfoMutation) OldCreatedAt(ctx context.Context) (v uint32, err erro
 }
 
 // AddCreatedAt adds u to the "created_at" field.
-func (m *CoinInfoMutation) AddCreatedAt(u int32) {
+func (m *TokenInfoMutation) AddCreatedAt(u int32) {
 	if m.addcreated_at != nil {
 		*m.addcreated_at += u
 	} else {
@@ -198,7 +200,7 @@ func (m *CoinInfoMutation) AddCreatedAt(u int32) {
 }
 
 // AddedCreatedAt returns the value that was added to the "created_at" field in this mutation.
-func (m *CoinInfoMutation) AddedCreatedAt() (r int32, exists bool) {
+func (m *TokenInfoMutation) AddedCreatedAt() (r int32, exists bool) {
 	v := m.addcreated_at
 	if v == nil {
 		return
@@ -207,19 +209,19 @@ func (m *CoinInfoMutation) AddedCreatedAt() (r int32, exists bool) {
 }
 
 // ResetCreatedAt resets all changes to the "created_at" field.
-func (m *CoinInfoMutation) ResetCreatedAt() {
+func (m *TokenInfoMutation) ResetCreatedAt() {
 	m.created_at = nil
 	m.addcreated_at = nil
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (m *CoinInfoMutation) SetUpdatedAt(u uint32) {
+func (m *TokenInfoMutation) SetUpdatedAt(u uint32) {
 	m.updated_at = &u
 	m.addupdated_at = nil
 }
 
 // UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *CoinInfoMutation) UpdatedAt() (r uint32, exists bool) {
+func (m *TokenInfoMutation) UpdatedAt() (r uint32, exists bool) {
 	v := m.updated_at
 	if v == nil {
 		return
@@ -227,10 +229,10 @@ func (m *CoinInfoMutation) UpdatedAt() (r uint32, exists bool) {
 	return *v, true
 }
 
-// OldUpdatedAt returns the old "updated_at" field's value of the CoinInfo entity.
-// If the CoinInfo object wasn't provided to the builder, the object is fetched from the database.
+// OldUpdatedAt returns the old "updated_at" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CoinInfoMutation) OldUpdatedAt(ctx context.Context) (v uint32, err error) {
+func (m *TokenInfoMutation) OldUpdatedAt(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
 	}
@@ -245,7 +247,7 @@ func (m *CoinInfoMutation) OldUpdatedAt(ctx context.Context) (v uint32, err erro
 }
 
 // AddUpdatedAt adds u to the "updated_at" field.
-func (m *CoinInfoMutation) AddUpdatedAt(u int32) {
+func (m *TokenInfoMutation) AddUpdatedAt(u int32) {
 	if m.addupdated_at != nil {
 		*m.addupdated_at += u
 	} else {
@@ -254,7 +256,7 @@ func (m *CoinInfoMutation) AddUpdatedAt(u int32) {
 }
 
 // AddedUpdatedAt returns the value that was added to the "updated_at" field in this mutation.
-func (m *CoinInfoMutation) AddedUpdatedAt() (r int32, exists bool) {
+func (m *TokenInfoMutation) AddedUpdatedAt() (r int32, exists bool) {
 	v := m.addupdated_at
 	if v == nil {
 		return
@@ -263,19 +265,19 @@ func (m *CoinInfoMutation) AddedUpdatedAt() (r int32, exists bool) {
 }
 
 // ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *CoinInfoMutation) ResetUpdatedAt() {
+func (m *TokenInfoMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 	m.addupdated_at = nil
 }
 
 // SetDeletedAt sets the "deleted_at" field.
-func (m *CoinInfoMutation) SetDeletedAt(u uint32) {
+func (m *TokenInfoMutation) SetDeletedAt(u uint32) {
 	m.deleted_at = &u
 	m.adddeleted_at = nil
 }
 
 // DeletedAt returns the value of the "deleted_at" field in the mutation.
-func (m *CoinInfoMutation) DeletedAt() (r uint32, exists bool) {
+func (m *TokenInfoMutation) DeletedAt() (r uint32, exists bool) {
 	v := m.deleted_at
 	if v == nil {
 		return
@@ -283,10 +285,10 @@ func (m *CoinInfoMutation) DeletedAt() (r uint32, exists bool) {
 	return *v, true
 }
 
-// OldDeletedAt returns the old "deleted_at" field's value of the CoinInfo entity.
-// If the CoinInfo object wasn't provided to the builder, the object is fetched from the database.
+// OldDeletedAt returns the old "deleted_at" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CoinInfoMutation) OldDeletedAt(ctx context.Context) (v uint32, err error) {
+func (m *TokenInfoMutation) OldDeletedAt(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
 	}
@@ -301,7 +303,7 @@ func (m *CoinInfoMutation) OldDeletedAt(ctx context.Context) (v uint32, err erro
 }
 
 // AddDeletedAt adds u to the "deleted_at" field.
-func (m *CoinInfoMutation) AddDeletedAt(u int32) {
+func (m *TokenInfoMutation) AddDeletedAt(u int32) {
 	if m.adddeleted_at != nil {
 		*m.adddeleted_at += u
 	} else {
@@ -310,7 +312,7 @@ func (m *CoinInfoMutation) AddDeletedAt(u int32) {
 }
 
 // AddedDeletedAt returns the value that was added to the "deleted_at" field in this mutation.
-func (m *CoinInfoMutation) AddedDeletedAt() (r int32, exists bool) {
+func (m *TokenInfoMutation) AddedDeletedAt() (r int32, exists bool) {
 	v := m.adddeleted_at
 	if v == nil {
 		return
@@ -319,18 +321,18 @@ func (m *CoinInfoMutation) AddedDeletedAt() (r int32, exists bool) {
 }
 
 // ResetDeletedAt resets all changes to the "deleted_at" field.
-func (m *CoinInfoMutation) ResetDeletedAt() {
+func (m *TokenInfoMutation) ResetDeletedAt() {
 	m.deleted_at = nil
 	m.adddeleted_at = nil
 }
 
 // SetName sets the "name" field.
-func (m *CoinInfoMutation) SetName(s string) {
+func (m *TokenInfoMutation) SetName(s string) {
 	m.name = &s
 }
 
 // Name returns the value of the "name" field in the mutation.
-func (m *CoinInfoMutation) Name() (r string, exists bool) {
+func (m *TokenInfoMutation) Name() (r string, exists bool) {
 	v := m.name
 	if v == nil {
 		return
@@ -338,10 +340,10 @@ func (m *CoinInfoMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old "name" field's value of the CoinInfo entity.
-// If the CoinInfo object wasn't provided to the builder, the object is fetched from the database.
+// OldName returns the old "name" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CoinInfoMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *TokenInfoMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldName is only allowed on UpdateOne operations")
 	}
@@ -356,17 +358,17 @@ func (m *CoinInfoMutation) OldName(ctx context.Context) (v string, err error) {
 }
 
 // ResetName resets all changes to the "name" field.
-func (m *CoinInfoMutation) ResetName() {
+func (m *TokenInfoMutation) ResetName() {
 	m.name = nil
 }
 
 // SetChainType sets the "chain_type" field.
-func (m *CoinInfoMutation) SetChainType(s string) {
+func (m *TokenInfoMutation) SetChainType(s string) {
 	m.chain_type = &s
 }
 
 // ChainType returns the value of the "chain_type" field in the mutation.
-func (m *CoinInfoMutation) ChainType() (r string, exists bool) {
+func (m *TokenInfoMutation) ChainType() (r string, exists bool) {
 	v := m.chain_type
 	if v == nil {
 		return
@@ -374,10 +376,10 @@ func (m *CoinInfoMutation) ChainType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldChainType returns the old "chain_type" field's value of the CoinInfo entity.
-// If the CoinInfo object wasn't provided to the builder, the object is fetched from the database.
+// OldChainType returns the old "chain_type" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CoinInfoMutation) OldChainType(ctx context.Context) (v string, err error) {
+func (m *TokenInfoMutation) OldChainType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldChainType is only allowed on UpdateOne operations")
 	}
@@ -392,30 +394,30 @@ func (m *CoinInfoMutation) OldChainType(ctx context.Context) (v string, err erro
 }
 
 // ClearChainType clears the value of the "chain_type" field.
-func (m *CoinInfoMutation) ClearChainType() {
+func (m *TokenInfoMutation) ClearChainType() {
 	m.chain_type = nil
-	m.clearedFields[coininfo.FieldChainType] = struct{}{}
+	m.clearedFields[tokeninfo.FieldChainType] = struct{}{}
 }
 
 // ChainTypeCleared returns if the "chain_type" field was cleared in this mutation.
-func (m *CoinInfoMutation) ChainTypeCleared() bool {
-	_, ok := m.clearedFields[coininfo.FieldChainType]
+func (m *TokenInfoMutation) ChainTypeCleared() bool {
+	_, ok := m.clearedFields[tokeninfo.FieldChainType]
 	return ok
 }
 
 // ResetChainType resets all changes to the "chain_type" field.
-func (m *CoinInfoMutation) ResetChainType() {
+func (m *TokenInfoMutation) ResetChainType() {
 	m.chain_type = nil
-	delete(m.clearedFields, coininfo.FieldChainType)
+	delete(m.clearedFields, tokeninfo.FieldChainType)
 }
 
 // SetTokenType sets the "token_type" field.
-func (m *CoinInfoMutation) SetTokenType(s string) {
+func (m *TokenInfoMutation) SetTokenType(s string) {
 	m.token_type = &s
 }
 
 // TokenType returns the value of the "token_type" field in the mutation.
-func (m *CoinInfoMutation) TokenType() (r string, exists bool) {
+func (m *TokenInfoMutation) TokenType() (r string, exists bool) {
 	v := m.token_type
 	if v == nil {
 		return
@@ -423,10 +425,10 @@ func (m *CoinInfoMutation) TokenType() (r string, exists bool) {
 	return *v, true
 }
 
-// OldTokenType returns the old "token_type" field's value of the CoinInfo entity.
-// If the CoinInfo object wasn't provided to the builder, the object is fetched from the database.
+// OldTokenType returns the old "token_type" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CoinInfoMutation) OldTokenType(ctx context.Context) (v string, err error) {
+func (m *TokenInfoMutation) OldTokenType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTokenType is only allowed on UpdateOne operations")
 	}
@@ -441,30 +443,128 @@ func (m *CoinInfoMutation) OldTokenType(ctx context.Context) (v string, err erro
 }
 
 // ClearTokenType clears the value of the "token_type" field.
-func (m *CoinInfoMutation) ClearTokenType() {
+func (m *TokenInfoMutation) ClearTokenType() {
 	m.token_type = nil
-	m.clearedFields[coininfo.FieldTokenType] = struct{}{}
+	m.clearedFields[tokeninfo.FieldTokenType] = struct{}{}
 }
 
 // TokenTypeCleared returns if the "token_type" field was cleared in this mutation.
-func (m *CoinInfoMutation) TokenTypeCleared() bool {
-	_, ok := m.clearedFields[coininfo.FieldTokenType]
+func (m *TokenInfoMutation) TokenTypeCleared() bool {
+	_, ok := m.clearedFields[tokeninfo.FieldTokenType]
 	return ok
 }
 
 // ResetTokenType resets all changes to the "token_type" field.
-func (m *CoinInfoMutation) ResetTokenType() {
+func (m *TokenInfoMutation) ResetTokenType() {
 	m.token_type = nil
-	delete(m.clearedFields, coininfo.FieldTokenType)
+	delete(m.clearedFields, tokeninfo.FieldTokenType)
+}
+
+// SetUnit sets the "unit" field.
+func (m *TokenInfoMutation) SetUnit(s string) {
+	m.unit = &s
+}
+
+// Unit returns the value of the "unit" field in the mutation.
+func (m *TokenInfoMutation) Unit() (r string, exists bool) {
+	v := m.unit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnit returns the old "unit" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TokenInfoMutation) OldUnit(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnit: %w", err)
+	}
+	return oldValue.Unit, nil
+}
+
+// ClearUnit clears the value of the "unit" field.
+func (m *TokenInfoMutation) ClearUnit() {
+	m.unit = nil
+	m.clearedFields[tokeninfo.FieldUnit] = struct{}{}
+}
+
+// UnitCleared returns if the "unit" field was cleared in this mutation.
+func (m *TokenInfoMutation) UnitCleared() bool {
+	_, ok := m.clearedFields[tokeninfo.FieldUnit]
+	return ok
+}
+
+// ResetUnit resets all changes to the "unit" field.
+func (m *TokenInfoMutation) ResetUnit() {
+	m.unit = nil
+	delete(m.clearedFields, tokeninfo.FieldUnit)
+}
+
+// SetDecimal sets the "decimal" field.
+func (m *TokenInfoMutation) SetDecimal(s string) {
+	m.decimal = &s
+}
+
+// Decimal returns the value of the "decimal" field in the mutation.
+func (m *TokenInfoMutation) Decimal() (r string, exists bool) {
+	v := m.decimal
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDecimal returns the old "decimal" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TokenInfoMutation) OldDecimal(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDecimal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDecimal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDecimal: %w", err)
+	}
+	return oldValue.Decimal, nil
+}
+
+// ClearDecimal clears the value of the "decimal" field.
+func (m *TokenInfoMutation) ClearDecimal() {
+	m.decimal = nil
+	m.clearedFields[tokeninfo.FieldDecimal] = struct{}{}
+}
+
+// DecimalCleared returns if the "decimal" field was cleared in this mutation.
+func (m *TokenInfoMutation) DecimalCleared() bool {
+	_, ok := m.clearedFields[tokeninfo.FieldDecimal]
+	return ok
+}
+
+// ResetDecimal resets all changes to the "decimal" field.
+func (m *TokenInfoMutation) ResetDecimal() {
+	m.decimal = nil
+	delete(m.clearedFields, tokeninfo.FieldDecimal)
 }
 
 // SetOfficialContract sets the "official_contract" field.
-func (m *CoinInfoMutation) SetOfficialContract(s string) {
+func (m *TokenInfoMutation) SetOfficialContract(s string) {
 	m.official_contract = &s
 }
 
 // OfficialContract returns the value of the "official_contract" field in the mutation.
-func (m *CoinInfoMutation) OfficialContract() (r string, exists bool) {
+func (m *TokenInfoMutation) OfficialContract() (r string, exists bool) {
 	v := m.official_contract
 	if v == nil {
 		return
@@ -472,10 +572,10 @@ func (m *CoinInfoMutation) OfficialContract() (r string, exists bool) {
 	return *v, true
 }
 
-// OldOfficialContract returns the old "official_contract" field's value of the CoinInfo entity.
-// If the CoinInfo object wasn't provided to the builder, the object is fetched from the database.
+// OldOfficialContract returns the old "official_contract" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CoinInfoMutation) OldOfficialContract(ctx context.Context) (v string, err error) {
+func (m *TokenInfoMutation) OldOfficialContract(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldOfficialContract is only allowed on UpdateOne operations")
 	}
@@ -490,17 +590,17 @@ func (m *CoinInfoMutation) OldOfficialContract(ctx context.Context) (v string, e
 }
 
 // ResetOfficialContract resets all changes to the "official_contract" field.
-func (m *CoinInfoMutation) ResetOfficialContract() {
+func (m *TokenInfoMutation) ResetOfficialContract() {
 	m.official_contract = nil
 }
 
 // SetPrivateContract sets the "private_contract" field.
-func (m *CoinInfoMutation) SetPrivateContract(s string) {
+func (m *TokenInfoMutation) SetPrivateContract(s string) {
 	m.private_contract = &s
 }
 
 // PrivateContract returns the value of the "private_contract" field in the mutation.
-func (m *CoinInfoMutation) PrivateContract() (r string, exists bool) {
+func (m *TokenInfoMutation) PrivateContract() (r string, exists bool) {
 	v := m.private_contract
 	if v == nil {
 		return
@@ -508,10 +608,10 @@ func (m *CoinInfoMutation) PrivateContract() (r string, exists bool) {
 	return *v, true
 }
 
-// OldPrivateContract returns the old "private_contract" field's value of the CoinInfo entity.
-// If the CoinInfo object wasn't provided to the builder, the object is fetched from the database.
+// OldPrivateContract returns the old "private_contract" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CoinInfoMutation) OldPrivateContract(ctx context.Context) (v string, err error) {
+func (m *TokenInfoMutation) OldPrivateContract(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPrivateContract is only allowed on UpdateOne operations")
 	}
@@ -526,17 +626,17 @@ func (m *CoinInfoMutation) OldPrivateContract(ctx context.Context) (v string, er
 }
 
 // ResetPrivateContract resets all changes to the "private_contract" field.
-func (m *CoinInfoMutation) ResetPrivateContract() {
+func (m *TokenInfoMutation) ResetPrivateContract() {
 	m.private_contract = nil
 }
 
 // SetRemark sets the "remark" field.
-func (m *CoinInfoMutation) SetRemark(s string) {
+func (m *TokenInfoMutation) SetRemark(s string) {
 	m.remark = &s
 }
 
 // Remark returns the value of the "remark" field in the mutation.
-func (m *CoinInfoMutation) Remark() (r string, exists bool) {
+func (m *TokenInfoMutation) Remark() (r string, exists bool) {
 	v := m.remark
 	if v == nil {
 		return
@@ -544,10 +644,10 @@ func (m *CoinInfoMutation) Remark() (r string, exists bool) {
 	return *v, true
 }
 
-// OldRemark returns the old "remark" field's value of the CoinInfo entity.
-// If the CoinInfo object wasn't provided to the builder, the object is fetched from the database.
+// OldRemark returns the old "remark" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CoinInfoMutation) OldRemark(ctx context.Context) (v string, err error) {
+func (m *TokenInfoMutation) OldRemark(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldRemark is only allowed on UpdateOne operations")
 	}
@@ -562,30 +662,30 @@ func (m *CoinInfoMutation) OldRemark(ctx context.Context) (v string, err error) 
 }
 
 // ClearRemark clears the value of the "remark" field.
-func (m *CoinInfoMutation) ClearRemark() {
+func (m *TokenInfoMutation) ClearRemark() {
 	m.remark = nil
-	m.clearedFields[coininfo.FieldRemark] = struct{}{}
+	m.clearedFields[tokeninfo.FieldRemark] = struct{}{}
 }
 
 // RemarkCleared returns if the "remark" field was cleared in this mutation.
-func (m *CoinInfoMutation) RemarkCleared() bool {
-	_, ok := m.clearedFields[coininfo.FieldRemark]
+func (m *TokenInfoMutation) RemarkCleared() bool {
+	_, ok := m.clearedFields[tokeninfo.FieldRemark]
 	return ok
 }
 
 // ResetRemark resets all changes to the "remark" field.
-func (m *CoinInfoMutation) ResetRemark() {
+func (m *TokenInfoMutation) ResetRemark() {
 	m.remark = nil
-	delete(m.clearedFields, coininfo.FieldRemark)
+	delete(m.clearedFields, tokeninfo.FieldRemark)
 }
 
 // SetData sets the "data" field.
-func (m *CoinInfoMutation) SetData(b []byte) {
+func (m *TokenInfoMutation) SetData(b []byte) {
 	m.data = &b
 }
 
 // Data returns the value of the "data" field in the mutation.
-func (m *CoinInfoMutation) Data() (r []byte, exists bool) {
+func (m *TokenInfoMutation) Data() (r []byte, exists bool) {
 	v := m.data
 	if v == nil {
 		return
@@ -593,10 +693,10 @@ func (m *CoinInfoMutation) Data() (r []byte, exists bool) {
 	return *v, true
 }
 
-// OldData returns the old "data" field's value of the CoinInfo entity.
-// If the CoinInfo object wasn't provided to the builder, the object is fetched from the database.
+// OldData returns the old "data" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CoinInfoMutation) OldData(ctx context.Context) (v []byte, err error) {
+func (m *TokenInfoMutation) OldData(ctx context.Context) (v []byte, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldData is only allowed on UpdateOne operations")
 	}
@@ -611,72 +711,78 @@ func (m *CoinInfoMutation) OldData(ctx context.Context) (v []byte, err error) {
 }
 
 // ClearData clears the value of the "data" field.
-func (m *CoinInfoMutation) ClearData() {
+func (m *TokenInfoMutation) ClearData() {
 	m.data = nil
-	m.clearedFields[coininfo.FieldData] = struct{}{}
+	m.clearedFields[tokeninfo.FieldData] = struct{}{}
 }
 
 // DataCleared returns if the "data" field was cleared in this mutation.
-func (m *CoinInfoMutation) DataCleared() bool {
-	_, ok := m.clearedFields[coininfo.FieldData]
+func (m *TokenInfoMutation) DataCleared() bool {
+	_, ok := m.clearedFields[tokeninfo.FieldData]
 	return ok
 }
 
 // ResetData resets all changes to the "data" field.
-func (m *CoinInfoMutation) ResetData() {
+func (m *TokenInfoMutation) ResetData() {
 	m.data = nil
-	delete(m.clearedFields, coininfo.FieldData)
+	delete(m.clearedFields, tokeninfo.FieldData)
 }
 
-// Where appends a list predicates to the CoinInfoMutation builder.
-func (m *CoinInfoMutation) Where(ps ...predicate.CoinInfo) {
+// Where appends a list predicates to the TokenInfoMutation builder.
+func (m *TokenInfoMutation) Where(ps ...predicate.TokenInfo) {
 	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
-func (m *CoinInfoMutation) Op() Op {
+func (m *TokenInfoMutation) Op() Op {
 	return m.op
 }
 
-// Type returns the node type of this mutation (CoinInfo).
-func (m *CoinInfoMutation) Type() string {
+// Type returns the node type of this mutation (TokenInfo).
+func (m *TokenInfoMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *CoinInfoMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+func (m *TokenInfoMutation) Fields() []string {
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
-		fields = append(fields, coininfo.FieldCreatedAt)
+		fields = append(fields, tokeninfo.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
-		fields = append(fields, coininfo.FieldUpdatedAt)
+		fields = append(fields, tokeninfo.FieldUpdatedAt)
 	}
 	if m.deleted_at != nil {
-		fields = append(fields, coininfo.FieldDeletedAt)
+		fields = append(fields, tokeninfo.FieldDeletedAt)
 	}
 	if m.name != nil {
-		fields = append(fields, coininfo.FieldName)
+		fields = append(fields, tokeninfo.FieldName)
 	}
 	if m.chain_type != nil {
-		fields = append(fields, coininfo.FieldChainType)
+		fields = append(fields, tokeninfo.FieldChainType)
 	}
 	if m.token_type != nil {
-		fields = append(fields, coininfo.FieldTokenType)
+		fields = append(fields, tokeninfo.FieldTokenType)
+	}
+	if m.unit != nil {
+		fields = append(fields, tokeninfo.FieldUnit)
+	}
+	if m.decimal != nil {
+		fields = append(fields, tokeninfo.FieldDecimal)
 	}
 	if m.official_contract != nil {
-		fields = append(fields, coininfo.FieldOfficialContract)
+		fields = append(fields, tokeninfo.FieldOfficialContract)
 	}
 	if m.private_contract != nil {
-		fields = append(fields, coininfo.FieldPrivateContract)
+		fields = append(fields, tokeninfo.FieldPrivateContract)
 	}
 	if m.remark != nil {
-		fields = append(fields, coininfo.FieldRemark)
+		fields = append(fields, tokeninfo.FieldRemark)
 	}
 	if m.data != nil {
-		fields = append(fields, coininfo.FieldData)
+		fields = append(fields, tokeninfo.FieldData)
 	}
 	return fields
 }
@@ -684,27 +790,31 @@ func (m *CoinInfoMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *CoinInfoMutation) Field(name string) (ent.Value, bool) {
+func (m *TokenInfoMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case coininfo.FieldCreatedAt:
+	case tokeninfo.FieldCreatedAt:
 		return m.CreatedAt()
-	case coininfo.FieldUpdatedAt:
+	case tokeninfo.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case coininfo.FieldDeletedAt:
+	case tokeninfo.FieldDeletedAt:
 		return m.DeletedAt()
-	case coininfo.FieldName:
+	case tokeninfo.FieldName:
 		return m.Name()
-	case coininfo.FieldChainType:
+	case tokeninfo.FieldChainType:
 		return m.ChainType()
-	case coininfo.FieldTokenType:
+	case tokeninfo.FieldTokenType:
 		return m.TokenType()
-	case coininfo.FieldOfficialContract:
+	case tokeninfo.FieldUnit:
+		return m.Unit()
+	case tokeninfo.FieldDecimal:
+		return m.Decimal()
+	case tokeninfo.FieldOfficialContract:
 		return m.OfficialContract()
-	case coininfo.FieldPrivateContract:
+	case tokeninfo.FieldPrivateContract:
 		return m.PrivateContract()
-	case coininfo.FieldRemark:
+	case tokeninfo.FieldRemark:
 		return m.Remark()
-	case coininfo.FieldData:
+	case tokeninfo.FieldData:
 		return m.Data()
 	}
 	return nil, false
@@ -713,101 +823,119 @@ func (m *CoinInfoMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *CoinInfoMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *TokenInfoMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case coininfo.FieldCreatedAt:
+	case tokeninfo.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case coininfo.FieldUpdatedAt:
+	case tokeninfo.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case coininfo.FieldDeletedAt:
+	case tokeninfo.FieldDeletedAt:
 		return m.OldDeletedAt(ctx)
-	case coininfo.FieldName:
+	case tokeninfo.FieldName:
 		return m.OldName(ctx)
-	case coininfo.FieldChainType:
+	case tokeninfo.FieldChainType:
 		return m.OldChainType(ctx)
-	case coininfo.FieldTokenType:
+	case tokeninfo.FieldTokenType:
 		return m.OldTokenType(ctx)
-	case coininfo.FieldOfficialContract:
+	case tokeninfo.FieldUnit:
+		return m.OldUnit(ctx)
+	case tokeninfo.FieldDecimal:
+		return m.OldDecimal(ctx)
+	case tokeninfo.FieldOfficialContract:
 		return m.OldOfficialContract(ctx)
-	case coininfo.FieldPrivateContract:
+	case tokeninfo.FieldPrivateContract:
 		return m.OldPrivateContract(ctx)
-	case coininfo.FieldRemark:
+	case tokeninfo.FieldRemark:
 		return m.OldRemark(ctx)
-	case coininfo.FieldData:
+	case tokeninfo.FieldData:
 		return m.OldData(ctx)
 	}
-	return nil, fmt.Errorf("unknown CoinInfo field %s", name)
+	return nil, fmt.Errorf("unknown TokenInfo field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *CoinInfoMutation) SetField(name string, value ent.Value) error {
+func (m *TokenInfoMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case coininfo.FieldCreatedAt:
+	case tokeninfo.FieldCreatedAt:
 		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case coininfo.FieldUpdatedAt:
+	case tokeninfo.FieldUpdatedAt:
 		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
 		return nil
-	case coininfo.FieldDeletedAt:
+	case tokeninfo.FieldDeletedAt:
 		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDeletedAt(v)
 		return nil
-	case coininfo.FieldName:
+	case tokeninfo.FieldName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
 		return nil
-	case coininfo.FieldChainType:
+	case tokeninfo.FieldChainType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetChainType(v)
 		return nil
-	case coininfo.FieldTokenType:
+	case tokeninfo.FieldTokenType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTokenType(v)
 		return nil
-	case coininfo.FieldOfficialContract:
+	case tokeninfo.FieldUnit:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnit(v)
+		return nil
+	case tokeninfo.FieldDecimal:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDecimal(v)
+		return nil
+	case tokeninfo.FieldOfficialContract:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOfficialContract(v)
 		return nil
-	case coininfo.FieldPrivateContract:
+	case tokeninfo.FieldPrivateContract:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPrivateContract(v)
 		return nil
-	case coininfo.FieldRemark:
+	case tokeninfo.FieldRemark:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRemark(v)
 		return nil
-	case coininfo.FieldData:
+	case tokeninfo.FieldData:
 		v, ok := value.([]byte)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -815,21 +943,21 @@ func (m *CoinInfoMutation) SetField(name string, value ent.Value) error {
 		m.SetData(v)
 		return nil
 	}
-	return fmt.Errorf("unknown CoinInfo field %s", name)
+	return fmt.Errorf("unknown TokenInfo field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *CoinInfoMutation) AddedFields() []string {
+func (m *TokenInfoMutation) AddedFields() []string {
 	var fields []string
 	if m.addcreated_at != nil {
-		fields = append(fields, coininfo.FieldCreatedAt)
+		fields = append(fields, tokeninfo.FieldCreatedAt)
 	}
 	if m.addupdated_at != nil {
-		fields = append(fields, coininfo.FieldUpdatedAt)
+		fields = append(fields, tokeninfo.FieldUpdatedAt)
 	}
 	if m.adddeleted_at != nil {
-		fields = append(fields, coininfo.FieldDeletedAt)
+		fields = append(fields, tokeninfo.FieldDeletedAt)
 	}
 	return fields
 }
@@ -837,13 +965,13 @@ func (m *CoinInfoMutation) AddedFields() []string {
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *CoinInfoMutation) AddedField(name string) (ent.Value, bool) {
+func (m *TokenInfoMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case coininfo.FieldCreatedAt:
+	case tokeninfo.FieldCreatedAt:
 		return m.AddedCreatedAt()
-	case coininfo.FieldUpdatedAt:
+	case tokeninfo.FieldUpdatedAt:
 		return m.AddedUpdatedAt()
-	case coininfo.FieldDeletedAt:
+	case tokeninfo.FieldDeletedAt:
 		return m.AddedDeletedAt()
 	}
 	return nil, false
@@ -852,23 +980,23 @@ func (m *CoinInfoMutation) AddedField(name string) (ent.Value, bool) {
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *CoinInfoMutation) AddField(name string, value ent.Value) error {
+func (m *TokenInfoMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case coininfo.FieldCreatedAt:
+	case tokeninfo.FieldCreatedAt:
 		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddCreatedAt(v)
 		return nil
-	case coininfo.FieldUpdatedAt:
+	case tokeninfo.FieldUpdatedAt:
 		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddUpdatedAt(v)
 		return nil
-	case coininfo.FieldDeletedAt:
+	case tokeninfo.FieldDeletedAt:
 		v, ok := value.(int32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -876,137 +1004,155 @@ func (m *CoinInfoMutation) AddField(name string, value ent.Value) error {
 		m.AddDeletedAt(v)
 		return nil
 	}
-	return fmt.Errorf("unknown CoinInfo numeric field %s", name)
+	return fmt.Errorf("unknown TokenInfo numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *CoinInfoMutation) ClearedFields() []string {
+func (m *TokenInfoMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(coininfo.FieldChainType) {
-		fields = append(fields, coininfo.FieldChainType)
+	if m.FieldCleared(tokeninfo.FieldChainType) {
+		fields = append(fields, tokeninfo.FieldChainType)
 	}
-	if m.FieldCleared(coininfo.FieldTokenType) {
-		fields = append(fields, coininfo.FieldTokenType)
+	if m.FieldCleared(tokeninfo.FieldTokenType) {
+		fields = append(fields, tokeninfo.FieldTokenType)
 	}
-	if m.FieldCleared(coininfo.FieldRemark) {
-		fields = append(fields, coininfo.FieldRemark)
+	if m.FieldCleared(tokeninfo.FieldUnit) {
+		fields = append(fields, tokeninfo.FieldUnit)
 	}
-	if m.FieldCleared(coininfo.FieldData) {
-		fields = append(fields, coininfo.FieldData)
+	if m.FieldCleared(tokeninfo.FieldDecimal) {
+		fields = append(fields, tokeninfo.FieldDecimal)
+	}
+	if m.FieldCleared(tokeninfo.FieldRemark) {
+		fields = append(fields, tokeninfo.FieldRemark)
+	}
+	if m.FieldCleared(tokeninfo.FieldData) {
+		fields = append(fields, tokeninfo.FieldData)
 	}
 	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *CoinInfoMutation) FieldCleared(name string) bool {
+func (m *TokenInfoMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *CoinInfoMutation) ClearField(name string) error {
+func (m *TokenInfoMutation) ClearField(name string) error {
 	switch name {
-	case coininfo.FieldChainType:
+	case tokeninfo.FieldChainType:
 		m.ClearChainType()
 		return nil
-	case coininfo.FieldTokenType:
+	case tokeninfo.FieldTokenType:
 		m.ClearTokenType()
 		return nil
-	case coininfo.FieldRemark:
+	case tokeninfo.FieldUnit:
+		m.ClearUnit()
+		return nil
+	case tokeninfo.FieldDecimal:
+		m.ClearDecimal()
+		return nil
+	case tokeninfo.FieldRemark:
 		m.ClearRemark()
 		return nil
-	case coininfo.FieldData:
+	case tokeninfo.FieldData:
 		m.ClearData()
 		return nil
 	}
-	return fmt.Errorf("unknown CoinInfo nullable field %s", name)
+	return fmt.Errorf("unknown TokenInfo nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *CoinInfoMutation) ResetField(name string) error {
+func (m *TokenInfoMutation) ResetField(name string) error {
 	switch name {
-	case coininfo.FieldCreatedAt:
+	case tokeninfo.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case coininfo.FieldUpdatedAt:
+	case tokeninfo.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
-	case coininfo.FieldDeletedAt:
+	case tokeninfo.FieldDeletedAt:
 		m.ResetDeletedAt()
 		return nil
-	case coininfo.FieldName:
+	case tokeninfo.FieldName:
 		m.ResetName()
 		return nil
-	case coininfo.FieldChainType:
+	case tokeninfo.FieldChainType:
 		m.ResetChainType()
 		return nil
-	case coininfo.FieldTokenType:
+	case tokeninfo.FieldTokenType:
 		m.ResetTokenType()
 		return nil
-	case coininfo.FieldOfficialContract:
+	case tokeninfo.FieldUnit:
+		m.ResetUnit()
+		return nil
+	case tokeninfo.FieldDecimal:
+		m.ResetDecimal()
+		return nil
+	case tokeninfo.FieldOfficialContract:
 		m.ResetOfficialContract()
 		return nil
-	case coininfo.FieldPrivateContract:
+	case tokeninfo.FieldPrivateContract:
 		m.ResetPrivateContract()
 		return nil
-	case coininfo.FieldRemark:
+	case tokeninfo.FieldRemark:
 		m.ResetRemark()
 		return nil
-	case coininfo.FieldData:
+	case tokeninfo.FieldData:
 		m.ResetData()
 		return nil
 	}
-	return fmt.Errorf("unknown CoinInfo field %s", name)
+	return fmt.Errorf("unknown TokenInfo field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *CoinInfoMutation) AddedEdges() []string {
+func (m *TokenInfoMutation) AddedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *CoinInfoMutation) AddedIDs(name string) []ent.Value {
+func (m *TokenInfoMutation) AddedIDs(name string) []ent.Value {
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *CoinInfoMutation) RemovedEdges() []string {
+func (m *TokenInfoMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *CoinInfoMutation) RemovedIDs(name string) []ent.Value {
+func (m *TokenInfoMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *CoinInfoMutation) ClearedEdges() []string {
+func (m *TokenInfoMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *CoinInfoMutation) EdgeCleared(name string) bool {
+func (m *TokenInfoMutation) EdgeCleared(name string) bool {
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *CoinInfoMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown CoinInfo unique edge %s", name)
+func (m *TokenInfoMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown TokenInfo unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *CoinInfoMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown CoinInfo edge %s", name)
+func (m *TokenInfoMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown TokenInfo edge %s", name)
 }

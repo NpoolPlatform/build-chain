@@ -7,19 +7,18 @@ import (
 	"github.com/google/uuid"
 )
 
-// DeployedCoins holds the schema definition for the DeployedCoins entity.
-type CoinInfo struct {
+type TokenInfo struct {
 	ent.Schema
 }
 
-func (CoinInfo) Mixin() []ent.Mixin {
+func (TokenInfo) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.TimeMixin{},
 	}
 }
 
 // Fields of the DeployedCoins.
-func (CoinInfo) Fields() []ent.Field {
+func (TokenInfo) Fields() []ent.Field {
 	return []ent.Field{
 		field.
 			UUID("id", uuid.UUID{}).
@@ -33,6 +32,14 @@ func (CoinInfo) Fields() []ent.Field {
 			Default(""),
 		field.
 			String("token_type").
+			Optional().
+			Default(""),
+		field.
+			String("unit").
+			Optional().
+			Default(""),
+		field.
+			String("decimal").
 			Optional().
 			Default(""),
 		field.
@@ -52,6 +59,6 @@ func (CoinInfo) Fields() []ent.Field {
 }
 
 // Edges of the DeployedCoins.
-func (CoinInfo) Edges() []ent.Edge {
+func (TokenInfo) Edges() []ent.Edge {
 	return nil
 }

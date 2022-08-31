@@ -6,5 +6,5 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// CoinInfo is the predicate function for coininfo builders.
-type CoinInfo func(*sql.Selector)
+// TokenInfo is the predicate function for tokeninfo builders.
+type TokenInfo func(*sql.Selector)

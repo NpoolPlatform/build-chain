@@ -7,19 +7,20 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	proto "github.com/NpoolPlatform/message/npool/build-chain"
-
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	proto "github.com/NpoolPlatform/message/npool/build-chain"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gocolly/colly"
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 type erc20row struct {
@@ -37,7 +38,7 @@ type CrawlTaskInfo struct {
 	TokenType string
 }
 
-var CrawlInterval = time.Millisecond * 300
+var CrawlInterval = time.Second * 2
 
 func CrawlERC20Rows(offset, limit int) ([]string, error) {
 	if offset <= 0 || limit < 1 {
@@ -89,10 +90,10 @@ func CrawlERC20Rows(offset, limit int) ([]string, error) {
 	return contracts, nil
 }
 
-func CrawlContractInfo(contractAddr string) (*proto.CoinInfo, error) {
+func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 	url := fmt.Sprintf("https://etherscan.io/token/%v#code", contractAddr)
 	var err error
-	var coininfo *proto.CoinInfo
+	var tokeninfo *proto.TokenInfo
 	var contract *coins.Contract
 	// Instantiate default collector
 	c := colly.NewCollector()
@@ -111,19 +112,21 @@ func CrawlContractInfo(contractAddr string) (*proto.CoinInfo, error) {
 
 		e := colly.NewHTMLElementFromSelectionNode(r, doc.Selection, doc.Nodes[0], 0)
 
-		// match cointype
-		coinType := e.ChildText("div.media-body span.text-secondary")
-		if coinType == "" {
+		// match tokenName
+		tokenName := e.ChildText("div.media-body span.text-secondary")
+		if tokenName == "" {
 			return
 		}
 
-		coinName := e.ChildText("#content > div.container.py-3 > div > div.mb-3.mb-lg-0 > h1 > div > span")
-		if coinName == "" {
+		// match decimal
+		contractDecimal := e.ChildText("#ContentPlaceHolder1_trDecimals div.col-md-8")
+		if contractDecimal == "" {
 			return
 		}
 
-		contractAddr := e.ChildText("#ContentPlaceHolder1_divSummary div.row.align-items-center a.text-truncate.d-block.mr-2")
-		if contractAddr == "" {
+		// match unit
+		contractUnit := e.ChildAttr("#ContentPlaceHolder1_hdnSymbol", "value")
+		if contractUnit == "" {
 			return
 		}
 
@@ -155,8 +158,10 @@ func CrawlContractInfo(contractAddr string) (*proto.CoinInfo, error) {
 			return
 		}
 
-		coininfo = &proto.CoinInfo{
-			Name:             coinName,
+		tokeninfo = &proto.TokenInfo{
+			Name:             tokenName,
+			Unit:             contractUnit,
+			Decimal:          contractDecimal,
 			ChainType:        "ethereum",
 			TokenType:        "erc20",
 			OfficialContract: contractAddr,
@@ -173,13 +178,13 @@ func CrawlContractInfo(contractAddr string) (*proto.CoinInfo, error) {
 		return nil, err
 	}
 
-	if coininfo == nil {
+	if tokeninfo == nil {
 		return nil, errors.New("can not crawl contract info")
 	}
-	return coininfo, nil
+	return tokeninfo, nil
 }
 
-func Task(info *CrawlTaskInfo) {
+func Crawl(info *CrawlTaskInfo) {
 	bcConn, err := bc_client.NewClientConn(info.Host)
 	ctx := context.Background()
 	if err != nil {
@@ -193,7 +198,7 @@ func Task(info *CrawlTaskInfo) {
 
 	fmt.Println("start deploy contract,please wait for end !")
 	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>")
-	successNum := 0
+	successData := []*proto.TokenInfo{}
 	var wg sync.WaitGroup
 	for _, v := range addresses {
 		// prevent to be baned
@@ -202,25 +207,42 @@ func Task(info *CrawlTaskInfo) {
 		wg.Add(1)
 		go func(contractAddr string) {
 			defer wg.Done()
-			coininfo, err := CrawlContractInfo(contractAddr)
+			tokeninfo, err := CrawlContractInfo(contractAddr)
 			if err != nil {
 				fmt.Printf("faild: address %v not support, %v\n", contractAddr, err)
 				return
 			}
-			resp, err := bcConn.CreateCoinInfo(ctx, &proto.CreateCoinInfoRequest{
-				Force: info.Force,
-				Info:  coininfo,
-			})
-			if err != nil {
-				fmt.Printf("faild: token %v, %v\n", coininfo.Name, err)
 
+			resp, err := bcConn.CreateTokenInfo(ctx, &proto.CreateTokenInfoRequest{
+				Force: info.Force,
+				Info:  tokeninfo,
+			})
+
+			if err != nil {
+				fmt.Printf("faild: token %v, %v\n", tokeninfo.Name, err)
 				return
 			}
-			successNum++
-			fmt.Printf("success: token %v, %v\n", coininfo.Name, resp.Msg)
+
+			tokeninfo.Remark = resp.Msg
+			successData = append(successData, tokeninfo)
+			fmt.Printf("success: token %v, %v\n", tokeninfo.Name, resp.Msg)
 		}(v)
 	}
 	wg.Wait()
 	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>")
-	fmt.Printf("deploy end,found %v,success %v\n", len(addresses), successNum)
+	fmt.Println("success deploy table:")
+	printTable(successData)
+	fmt.Printf("deploy end,found %v,success %v\n", len(addresses), len(successData))
+}
+
+func printTable(infos []*proto.TokenInfo) {
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Name", "Unit", "Decimal", "Message"})
+	tableRows := []table.Row{}
+	for _, v := range infos {
+		tableRows = append(tableRows, []interface{}{v.Name, v.Unit, v.Decimal, v.Remark})
+	}
+	t.AppendRows(tableRows)
+	t.Render()
 }

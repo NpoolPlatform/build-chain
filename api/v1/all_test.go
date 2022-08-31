@@ -20,7 +20,7 @@ func TestAll(t *testing.T) {
 	}
 
 	host := "127.0.0.1:50491"
-	eth.Task(&eth.CrawlTaskInfo{
+	eth.Crawl(&eth.CrawlTaskInfo{
 		Host:      host,
 		Offset:    1,
 		Limit:     100,
@@ -32,7 +32,7 @@ func TestAll(t *testing.T) {
 	conn, err := client.NewClientConn(host)
 	assert.Nil(t, err)
 
-	resp, err := conn.GetCoinInfos(context.Background(), &proto.GetCoinInfosRequest{})
+	resp, err := conn.GetTokenInfos(context.Background(), &proto.GetTokenInfosRequest{})
 	assert.Nil(t, err)
 	assert.Equal(t, resp.Total, uint32(len(resp.Infos)))
 
