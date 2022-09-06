@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 
@@ -18,12 +17,11 @@ import (
 func client() (*ent.Client, error) {
 	client, err := ent.Open("sqlite3", "buildchain.sqlite.db?cache=shared&_fk=1")
 	if err != nil {
-		log.Fatalf("failed opening connection to sqlite: %v", err)
+		return nil, err
 	}
-	// defer client.Close()
-	// Run the auto migration tool.
+
 	if err := client.Schema.Create(context.Background()); err != nil {
-		log.Fatalf("failed creating schema resources: %v", err)
+		return nil, err
 	}
 	return client, nil
 }
@@ -33,11 +31,19 @@ func Init() error {
 	if err != nil {
 		return err
 	}
+	defer cli.Close()
 	return cli.Schema.Create(context.Background())
 }
 
+var entclient *ent.Client
+
 func Client() (*ent.Client, error) {
-	return client()
+	var err error
+	if entclient != nil {
+		return entclient, nil
+	}
+	entclient, err = client()
+	return entclient, err
 }
 
 func WithTx(ctx context.Context, fn func(ctx context.Context, tx *ent.Tx) error) error {

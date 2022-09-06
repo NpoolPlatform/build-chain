@@ -1,6 +1,12 @@
 package eth
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"math"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -10,7 +16,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-const Ten = 10
+const (
+	Ten        = 10
+	EthDecimal = 18
+)
 
 func ERC20Faucet(contract, to common.Address, amount string) (*types.Transaction, error) {
 	client, err := Client()
@@ -75,4 +84,72 @@ func ERC20Balance(contract, acc common.Address) (string, error) {
 	decimal.DivisionPrecision = int(deci)
 	value := decimal.NewFromBigInt(ret, 0).Div(decimal.NewFromInt(Ten).Pow(decimal.NewFromInt(int64(deci)))).String()
 	return value, nil
+}
+
+func ETHFaucet(to common.Address, amountStr string) (*types.Transaction, error) {
+	client, err := Client()
+	if err != nil {
+		return nil, err
+	}
+	defer client.Close()
+
+	cli := ethclient.NewClient(client)
+	ctx := context.Background()
+	auth, err := GetAuth(client)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		nonce    uint64
+		gasPrice *big.Int
+		gasLimit uint64 = 21_000
+	)
+
+	nonce, err = cli.PendingNonceAt(ctx, auth.From)
+	if err != nil {
+		return nil, err
+	}
+
+	gasPrice, err = cli.SuggestGasPrice(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	amount, ok := big.NewFloat(0).SetString(amountStr)
+	if !ok {
+		return nil, fmt.Errorf("parse amount %v faild", amountStr)
+	}
+
+	amount.Mul(amount, big.NewFloat(math.Pow10(EthDecimal)))
+
+	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), Ten)
+	if !ok {
+		return nil, errors.New("invalid eth amount")
+	}
+
+	if amountBig.Cmp(common.Big0) <= 0 {
+		return nil, errors.New("invalid eth amount")
+	}
+
+	// build tx
+	tx := types.NewTransaction(
+		nonce,
+		to,
+		amountBig,
+		gasLimit,
+		big.NewInt(gasPrice.Int64()),
+		nil,
+	)
+
+	tx, err = auth.Signer(auth.From, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cli.SendTransaction(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+	return tx, err
 }

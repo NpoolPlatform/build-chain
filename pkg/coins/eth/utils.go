@@ -2,6 +2,9 @@ package eth
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"encoding/hex"
+	"errors"
 
 	"fmt"
 	"math/big"
@@ -173,4 +176,26 @@ func Client() (*rpc.Client, error) {
 		}
 	}
 	return client, nil
+}
+
+func GenPriAndPubKey() (pri *ecdsa.PrivateKey, pub common.Address, err error) {
+	pri, err = crypto.GenerateKey()
+	if err != nil {
+		return
+	}
+
+	privateKeyBytes := crypto.FromECDSA(pri)
+	privateKeyBytesHex := make([]byte, len(privateKeyBytes)*2)
+	hex.Encode(privateKeyBytesHex, privateKeyBytes)
+
+	// privateKey.PublicKey
+	publicKey := pri.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		err = errors.New("create account error casting public key to ECDSA")
+		return
+	}
+
+	pub = crypto.PubkeyToAddress(*publicKeyECDSA)
+	return pri, pub, nil
 }

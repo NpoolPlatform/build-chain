@@ -11,17 +11,16 @@ import (
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth/erc20"
 	npool "github.com/NpoolPlatform/message/npool/build-chain"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
 var (
-	ErrContractNotExist       = errors.New("contract data do not exist")
-	ErrTrasferFailed          = errors.New("trasfer failed")
-	testAmount          int64 = 60
-	toAddr                    = common.HexToAddress("0xBcE9e4a7aa5eF6998439618771D4754596045b76")
-	maxRetries                = 5
+	ErrContractNotExist = errors.New("contract data do not exist")
+	ErrTrasferFailed    = errors.New("trasfer failed")
+	maxRetries          = 5
 )
 
 func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
@@ -90,34 +89,81 @@ func DeployBaseErc20(ctx context.Context, client *rpc.Client, in *npool.TokenInf
 }
 
 func TransferSpy(ctx context.Context, client *rpc.Client, contract common.Address) error {
-	auth, err := GetAuth(client)
+	coinbaseAuth, err := GetAuth(client)
+	if err != nil {
+		return err
+	}
+	ethClient := ethclient.NewClient(client)
+	token, err := erc20.NewErc20(contract, ethClient)
 	if err != nil {
 		return err
 	}
 
-	token, err := erc20.NewErc20(contract, ethclient.NewClient(client))
+	toPri1, toPub1, err := GenPriAndPubKey()
 	if err != nil {
 		return err
 	}
 
-	_, err = token.Transfer(auth, toAddr, big.NewInt(testAmount))
+	_, toPub2, err := GenPriAndPubKey()
+	if err != nil {
+		return err
+	}
+
+	chainID, err := ethClient.NetworkID(ctx)
+	if err != nil {
+		return err
+	}
+
+	auth1, err := bind.NewKeyedTransactorWithChainID(toPri1, chainID)
+	if err != nil {
+		return err
+	}
+
+	// faucet gas for transfer token
+	_, err = ETHFaucet(toPub1, "1.888")
+	if err != nil {
+		return err
+	}
+
+	var amount int64 = 10000
+	err = transferSpy(token, coinbaseAuth, toPub1, amount)
+	if err != nil {
+		return err
+	}
+
+	amount /= 2
+	err = transferSpy(token, auth1, toPub2, amount)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func transferSpy(token *erc20.Erc20, auth *bind.TransactOpts, toAddr common.Address, amount int64) error {
+	balance0, err := token.BalanceOf(nil, toAddr)
+	if err != nil {
+		return err
+	}
+
+	_, err = token.Transfer(auth, toAddr, big.NewInt(amount))
 	if err != nil {
 		return err
 	}
 
 	// wait utile to the account
-	var balance *big.Int
+	var balance1 *big.Int
 	for i := 0; i <= maxRetries; i++ {
-		balance, err = token.BalanceOf(nil, toAddr)
-		if balance.Int64() != 0 || err != nil {
-			continue
+		balance1, err = token.BalanceOf(nil, toAddr)
+		if balance1.Int64() != balance0.Int64() || err != nil {
+			break
 		}
 		time.Sleep(time.Second)
 	}
 	if err != nil {
 		return err
 	}
-	if balance.Int64() == 0 {
+	if balance1.Int64() == balance0.Int64() {
 		return ErrTrasferFailed
 	}
 	return nil

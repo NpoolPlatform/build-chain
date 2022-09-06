@@ -15,12 +15,15 @@ import (
 
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
+	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	proto "github.com/NpoolPlatform/message/npool/build-chain"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gocolly/colly"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type erc20row struct {
@@ -38,7 +41,7 @@ type CrawlTaskInfo struct {
 	TokenType string
 }
 
-var CrawlInterval = time.Second * 2
+var CrawlInterval = time.Second
 
 func CrawlERC20Rows(offset, limit int) ([]string, error) {
 	if offset <= 0 || limit < 1 {
@@ -93,7 +96,7 @@ func CrawlERC20Rows(offset, limit int) ([]string, error) {
 func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 	url := fmt.Sprintf("https://etherscan.io/token/%v#code", contractAddr)
 	var err error
-	var tokeninfo *proto.TokenInfo
+	var info *proto.TokenInfo
 	var contract *coins.Contract
 	// Instantiate default collector
 	c := colly.NewCollector()
@@ -109,12 +112,17 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 		if err != nil {
 			return
 		}
-
 		e := colly.NewHTMLElementFromSelectionNode(r, doc.Selection, doc.Nodes[0], 0)
 
 		// match tokenName
 		tokenName := e.ChildText("div.media-body span.text-secondary")
 		if tokenName == "" {
+			return
+		}
+
+		// match contract
+		mainContractAddr := e.ChildText("div.clipboard-hover span.d-none")
+		if mainContractAddr == "" {
 			return
 		}
 
@@ -158,13 +166,13 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 			return
 		}
 
-		tokeninfo = &proto.TokenInfo{
+		info = &proto.TokenInfo{
 			Name:             tokenName,
 			Unit:             contractUnit,
 			Decimal:          contractDecimal,
 			ChainType:        "ethereum",
 			TokenType:        "erc20",
-			OfficialContract: contractAddr,
+			OfficialContract: mainContractAddr,
 			Data:             _contract,
 		}
 	})
@@ -178,14 +186,18 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 		return nil, err
 	}
 
-	if tokeninfo == nil {
+	if info == nil {
 		return nil, errors.New("can not crawl contract info")
 	}
-	return tokeninfo, nil
+	return info, nil
 }
 
 func Crawl(info *CrawlTaskInfo) {
 	bcConn, err := bc_client.NewClientConn(info.Host)
+	if err != nil {
+		fmt.Printf("faild: connect server faild, %v\n", err)
+		return
+	}
 	ctx := context.Background()
 	if err != nil {
 		log.Fatal(err)
@@ -201,38 +213,55 @@ func Crawl(info *CrawlTaskInfo) {
 	successData := []*proto.TokenInfo{}
 	var wg sync.WaitGroup
 	for _, v := range addresses {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			info, err := CrawlOne(ctx, bcConn, v, info.Force)
+			if err == nil {
+				fmt.Printf("success create token name: %v, official contract :%v\n", info.Name, info.OfficialContract)
+				successData = append(successData, info)
+				return
+			}
+			fmt.Println(err)
+		}()
 		// prevent to be baned
 		time.Sleep(CrawlInterval)
-
-		wg.Add(1)
-		go func(contractAddr string) {
-			defer wg.Done()
-			tokeninfo, err := CrawlContractInfo(contractAddr)
-			if err != nil {
-				fmt.Printf("faild: address %v not support, %v\n", contractAddr, err)
-				return
-			}
-
-			resp, err := bcConn.CreateTokenInfo(ctx, &proto.CreateTokenInfoRequest{
-				Force: info.Force,
-				Info:  tokeninfo,
-			})
-
-			if err != nil {
-				fmt.Printf("faild: token %v, %v\n", tokeninfo.Name, err)
-				return
-			}
-
-			tokeninfo.Remark = resp.Msg
-			successData = append(successData, tokeninfo)
-			fmt.Printf("success: token %v, %v\n", tokeninfo.Name, resp.Msg)
-		}(v)
 	}
 	wg.Wait()
 	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>")
 	fmt.Println("success deploy table:")
 	printTable(successData)
 	fmt.Printf("deploy end,found %v,success %v\n", len(addresses), len(successData))
+}
+
+func CrawlOne(ctx context.Context, bcConn *bc_client.BuildChainClientConn, addr string, force bool) (token *proto.TokenInfo, err error) {
+	conds := cruder.NewFilterConds()
+	conds.WithCond(tokeninfo.FieldOfficialContract, cruder.EQ, structpb.NewStringValue(addr))
+
+	resp1, err := bcConn.GetTokenInfos(ctx, &proto.GetTokenInfosRequest{Conds: conds})
+	if err != nil {
+		return nil, fmt.Errorf("faild check address %v, %v", addr, err)
+	}
+
+	if resp1.Total != 0 && !force {
+		return resp1.Infos[0], nil
+	}
+
+	token, err = CrawlContractInfo(addr)
+	if err != nil {
+		return nil, fmt.Errorf("faild crawl address %v, %v", addr, err)
+	}
+
+	resp2, err := bcConn.CreateTokenInfo(ctx, &proto.CreateTokenInfoRequest{
+		Force: force,
+		Info:  token,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("faild create token %v, %v", token.Name, err)
+	}
+	token.Remark = resp2.Msg
+	return token, nil
 }
 
 func printTable(infos []*proto.TokenInfo) {

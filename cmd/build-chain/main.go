@@ -9,7 +9,6 @@ import (
 	"github.com/NpoolPlatform/build-chain/pkg/servicename"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/go-service-framework/pkg/version"
-
 	banner "github.com/common-nighthawk/go-figure"
 	cli "github.com/urfave/cli/v2"
 )
