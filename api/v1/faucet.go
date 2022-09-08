@@ -41,6 +41,6 @@ func (s *Server) Faucet(ctx context.Context, in *npool.FaucetRequst) (*npool.Fau
 
 	ret.Msg = fmt.Sprintf("airdrop tx-id:%v", txHash)
 	ret.Success = true
-	logger.Sugar().Infof("faucet success, %v", ret.Msg)
+	logger.Sugar().Infof("faucet success, %v,%v", info.Name, ret.Msg)
 	return ret, nil
 }
