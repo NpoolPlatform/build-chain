@@ -9,7 +9,7 @@ import (
 
 func Init() {
 	// TODO: should be remove,will replace
-	tokeninfo_crud.Create(context.Background(), &proto.TokenInfo{
+	_, _ = tokeninfo_crud.Create(context.Background(), &proto.TokenInfo{
 		Name:             "Ethereum",
 		Unit:             "ETH",
 		Decimal:          "18",
