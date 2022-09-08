@@ -120,7 +120,7 @@ func TransferSpy(ctx context.Context, client *rpc.Client, contract common.Addres
 	}
 
 	// faucet gas for transfer token
-	_, err = ETHFaucet(toPub1, "1.888")
+	_, err = ETHFaucet(toPub1.String(), "1.888")
 	if err != nil {
 		return err
 	}

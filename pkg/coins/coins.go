@@ -1,6 +1,7 @@
 package coins
 
 // chain name define
+// TODO: types should to conform to the sphinx-*
 const (
 	EthereumChain  = "ethereum"
 	TronChain      = "tron"

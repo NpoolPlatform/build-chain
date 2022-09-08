@@ -16,8 +16,8 @@ type BuildChainClientConn struct {
 	npool.BuildChainClient
 }
 
-func NewClientConn(host string) (*BuildChainClientConn, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+func NewClientConn(_ctx context.Context, host string) (*BuildChainClientConn, error) {
+	ctx, cancel := context.WithTimeout(_ctx, time.Second)
 	defer cancel()
 	conn, err := grpc.DialContext(ctx, host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

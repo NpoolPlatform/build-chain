@@ -13,6 +13,7 @@ import (
 	cli "github.com/urfave/cli/v2"
 
 	"github.com/NpoolPlatform/build-chain/api/v1"
+	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/config"
 	"github.com/NpoolPlatform/build-chain/pkg/db"
 	res "github.com/NpoolPlatform/build-chain/resource"
@@ -56,6 +57,8 @@ var runCmd = &cli.Command{
 		if err := db.Init(); err != nil {
 			return err
 		}
+
+		coins.Init()
 
 		go func() {
 			runGRPCServer(config.GetInt(config.KeyGRPCPort))

@@ -21,43 +21,53 @@ const (
 	EthDecimal = 18
 )
 
-func ERC20Faucet(contract, to common.Address, amount string) (*types.Transaction, error) {
+func ERC20Faucet(_contract, _to, amount string) (string, error) {
+	if ok := common.IsHexAddress(_contract); !ok {
+		return "", errors.New("contract address invalid")
+	}
+	contract := common.HexToAddress(_contract)
+
+	if ok := common.IsHexAddress(_to); !ok {
+		return "", errors.New("to address invalid")
+	}
+	to := common.HexToAddress(_to)
+
 	client, err := Client()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer client.Close()
 	ethcli := ethclient.NewClient(client)
 	token, err := erc20.NewErc20(contract, ethcli)
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	auth, err := GetAuth(client)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	err = UnlockCoinbase(client)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	deci, err := token.Decimals(nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	decimal.DivisionPrecision = int(deci)
 	_decimal, err := decimal.NewFromString(amount)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	_value := _decimal.Mul(decimal.NewFromInt(Ten).Pow(decimal.NewFromInt(int64(deci)))).BigInt()
 
 	tx, err := token.Transfer(auth, to, _value)
-	return tx, err
+	return tx.Hash().String(), err
 }
 
 func ERC20Balance(contract, acc common.Address) (string, error) {
@@ -86,10 +96,15 @@ func ERC20Balance(contract, acc common.Address) (string, error) {
 	return value, nil
 }
 
-func ETHFaucet(to common.Address, amountStr string) (*types.Transaction, error) {
+func ETHFaucet(_to, amountStr string) (string, error) {
+	if ok := common.IsHexAddress(_to); !ok {
+		return "", errors.New("to address invalid")
+	}
+	to := common.HexToAddress(_to)
+
 	client, err := Client()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer client.Close()
 
@@ -97,7 +112,7 @@ func ETHFaucet(to common.Address, amountStr string) (*types.Transaction, error) 
 	ctx := context.Background()
 	auth, err := GetAuth(client)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	var (
@@ -108,28 +123,28 @@ func ETHFaucet(to common.Address, amountStr string) (*types.Transaction, error) 
 
 	nonce, err = cli.PendingNonceAt(ctx, auth.From)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	gasPrice, err = cli.SuggestGasPrice(ctx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	amount, ok := big.NewFloat(0).SetString(amountStr)
 	if !ok {
-		return nil, fmt.Errorf("parse amount %v faild", amountStr)
+		return "", fmt.Errorf("parse amount %v faild", amountStr)
 	}
 
 	amount.Mul(amount, big.NewFloat(math.Pow10(EthDecimal)))
 
 	amountBig, ok := big.NewInt(0).SetString(amount.Text('f', 0), Ten)
 	if !ok {
-		return nil, errors.New("invalid eth amount")
+		return "", errors.New("invalid eth amount")
 	}
 
 	if amountBig.Cmp(common.Big0) <= 0 {
-		return nil, errors.New("invalid eth amount")
+		return "", errors.New("invalid eth amount")
 	}
 
 	// build tx
@@ -144,12 +159,12 @@ func ETHFaucet(to common.Address, amountStr string) (*types.Transaction, error) 
 
 	tx, err = auth.Signer(auth.From, tx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	err = cli.SendTransaction(ctx, tx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return tx, err
+	return tx.Hash().String(), err
 }

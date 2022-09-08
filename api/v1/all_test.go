@@ -29,7 +29,7 @@ func TestAll(t *testing.T) {
 		TokenType: "erc20",
 	})
 
-	conn, err := client.NewClientConn(host)
+	conn, err := client.NewClientConn(context.Background(), host)
 	assert.Nil(t, err)
 
 	resp, err := conn.GetTokenInfos(context.Background(), &proto.GetTokenInfosRequest{})
@@ -40,9 +40,9 @@ func TestAll(t *testing.T) {
 	to := "0xAfBacba7435dAB4b68E446bb4e8744174b592b57"
 	for _, info := range resp.Infos {
 		faucetResp, err := conn.Faucet(context.Background(), &proto.FaucetRequst{
-			To:       to,
-			Amount:   amount,
-			Contract: info.PrivateContract,
+			To:               to,
+			Amount:           amount,
+			OfficialContract: info.OfficialContract,
 		})
 		assert.Nil(t, err)
 		assert.Equal(t, faucetResp.Success, true)

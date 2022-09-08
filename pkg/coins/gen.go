@@ -36,7 +36,7 @@ type tmplStruct struct {
 }
 
 func Gen(taskInfo *GenTaskInfo) {
-	conn, err := bc_client.NewClientConn(taskInfo.Host)
+	conn, err := bc_client.NewClientConn(context.Background(), taskInfo.Host)
 	if err != nil {
 		fmt.Printf("faild: host %v can not connect, %v\n", taskInfo.Host, err)
 	}

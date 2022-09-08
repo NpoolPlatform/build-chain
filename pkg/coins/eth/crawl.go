@@ -193,7 +193,7 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 }
 
 func Crawl(info *CrawlTaskInfo) {
-	bcConn, err := bc_client.NewClientConn(info.Host)
+	bcConn, err := bc_client.NewClientConn(context.Background(), info.Host)
 	if err != nil {
 		fmt.Printf("faild: connect server faild, %v\n", err)
 		return

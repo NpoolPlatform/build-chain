@@ -4,30 +4,39 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth"
+	tokeninfo_crud "github.com/NpoolPlatform/build-chain/pkg/crud/v1/tokeninfo"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
+	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	npool "github.com/NpoolPlatform/message/npool/build-chain"
-	"github.com/ethereum/go-ethereum/common"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func (s *Server) Faucet(ctx context.Context, in *npool.FaucetRequst) (*npool.FaucetResponse, error) {
 	ret := &npool.FaucetResponse{}
-	// TODO: support muti-chaintype and muti-tokentype
-	if ok := common.IsHexAddress(in.Contract); !ok {
-		return ret, status.Error(codes.InvalidArgument, "contract address invalid")
+
+	conds := cruder.NewConds()
+	conds.WithCond(tokeninfo.FieldOfficialContract, cruder.EQ, in.OfficialContract)
+
+	info, err := tokeninfo_crud.RowOnly(ctx, conds)
+	if err != nil {
+		return ret, status.Error(codes.InvalidArgument, fmt.Sprintf("faild to query tokeninfo,%v", err))
 	}
 
-	if ok := common.IsHexAddress(in.To); !ok {
-		return ret, status.Error(codes.InvalidArgument, "to address invalid")
+	var txHash string
+	switch info.TokenType {
+	case coins.ERC20TOKEN:
+		txHash, err = eth.ERC20Faucet(info.PrivateContract, in.To, in.Amount)
+	case coins.EthereumChain:
+		txHash, err = eth.ETHFaucet(in.To, in.Amount)
 	}
-
-	tx, err := eth.ERC20Faucet(common.HexToAddress(in.Contract), common.HexToAddress(in.To), in.Amount)
 	if err != nil {
 		return ret, status.Error(codes.InvalidArgument, fmt.Sprintf("faild to air-drop,%v", err))
 	}
 
-	ret.Msg = fmt.Sprintf("airdrop tx-id:%v", tx.Hash())
+	ret.Msg = fmt.Sprintf("airdrop tx-id:%v", txHash)
 	ret.Success = true
 	return ret, nil
 }

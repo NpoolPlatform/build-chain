@@ -129,6 +129,27 @@ func Rows(ctx context.Context, conds cruder.Conds, offset, limit int) ([]*npool.
 	return toObjs(rows), total, nil
 }
 
+func RowOnly(ctx context.Context, conds cruder.Conds) (*npool.TokenInfo, error) {
+	var err error
+	row := &ent.TokenInfo{}
+
+	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
+		stm := tx.TokenInfo.Query()
+		stm, err = queryFromConds(conds, stm)
+		if err != nil {
+			return err
+		}
+
+		row, err = stm.Only(ctx)
+		return err
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return toObj(row), nil
+}
+
 func All(ctx context.Context, conds cruder.Conds) ([]*npool.TokenInfo, int, error) {
 	var err error
 	rows := []*ent.TokenInfo{}

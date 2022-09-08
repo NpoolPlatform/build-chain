@@ -22,14 +22,14 @@
             </div>
             <div class="item">
                 <span class="item_key">Token</span>
-                <select name="tokens" id="tokens" v-model="selectedCoin" style="height: 1.2rem;font-size: 0.8rem;">
-                    <option value="" selected="true">select token</option>
-                    <option v-for="coin in coinsInfo" v-bind:value="coin.PrivateContract">{{ coin.Name }}</option>
+                <select name="tokens" id="tokens"  v-model="selectedCoin" style="height: 1.2rem;font-size: 0.8rem;">
+                    <option selected disabled hidden>Choose here</option>
+                    <option v-for="coin in coinsInfo" v-bind:value="{ID:coin.ID,OfficialContract:coin.OfficialContract,Contract:coin.PrivateContract}">{{ coin.Name }}</option>
                 </select>
             </div>
             <div class="item">
                 <span class="item_key">Contract</span>
-                <input class="item_input" type="text" v-bind:value="selectedCoin">
+                <input class="item_input" disabled type="text" v-bind:value="selectedCoin.Contract">
             </div>
             <div class="item">
                 <span class="item_key">To</span>
@@ -59,7 +59,7 @@
 
 <script>
     const GetCoinsInfoAPI = {
-        url: "/v1/get/token/infos",
+        url: "/v1/get/tokeninfos",
         method: "POST",
         args: null,
     }
@@ -69,7 +69,7 @@
         args: {
             to: "",
             amount: "",
-            contract: "",
+            id: "",
         },
     }
 
@@ -80,8 +80,8 @@
     app = createApp({
         data() {
             return {
-                coinsInfo: [],
-                selectedCoin: "",
+                coinsInfo: [{PrivateContract:""}],
+                selectedCoin: {},
                 to:"",
                 amount:"",
                 txLog:[],
@@ -101,7 +101,7 @@
                 if (this.txLog.length > 10) {
                     this.txLog.splice(10,5)
                 }
-                axios.post(FaucetAPI.url, {To:this.to,Amount:this.amount,Contract:this.selectedCoin})
+                axios.post(FaucetAPI.url, {To:this.to,Amount:this.amount,OfficialContract:this.selectedCoin.OfficialContract})
                 .then(res => {
                     this.txLog.unshift({msg:res.data.Msg,to:this.to,color:"#6699ff"})
                 })

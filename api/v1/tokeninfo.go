@@ -76,17 +76,13 @@ func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoR
 	if in.Force {
 		conds := cruder.NewConds()
 		conds.WithCond(tokeninfo.FieldOfficialContract, cruder.EQ, in.Info.OfficialContract)
-		infos, num, err := tokeninfo_crud.Rows(ctx, conds, 0, 0)
+		info, err := tokeninfo_crud.RowOnly(ctx, conds)
 		if err != nil {
 			return &npool.CreateTokenInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
 		}
 
-		if num == 0 {
-			info, err = tokeninfo_crud.Create(ctx, in.Info)
-		} else {
-			in.Info.ID = infos[0].ID
-			info, err = tokeninfo_crud.Update(ctx, in.Info)
-		}
+		in.Info.ID = info.ID
+		info, err = tokeninfo_crud.Update(ctx, in.Info)
 
 		if err != nil {
 			return &npool.CreateTokenInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
