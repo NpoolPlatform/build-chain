@@ -44,6 +44,7 @@ func main() {
 		Usage:       usageText,
 		Commands:    commands,
 	}
+
 	if err != nil {
 		logger.Sugar().Errorf("fail to create %v: %v", servicename.ServiceName, err)
 		return

@@ -56,63 +56,62 @@ func tokenInfoCondsToConds(conds cruder.FilterConds) (cruder.Conds, error) {
 
 func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoRequest) (*npool.CreateTokenInfoResponse, error) {
 	var err error
+	var _info *npool.TokenInfo
 	var info *npool.TokenInfo
 
-	if !in.Force {
-		conds := cruder.NewConds()
-		conds.WithCond(tokeninfo.FieldOfficialContract, cruder.EQ, in.Info.OfficialContract)
-		_, num, _ := tokeninfo_crud.Rows(ctx, conds, 0, 0)
-		if num != 0 {
-			return &npool.CreateTokenInfoResponse{Msg: "it`s exist"}, nil
-		}
+	conds := cruder.NewConds()
+	conds.WithCond(tokeninfo.FieldOfficialContract, cruder.EQ, in.Info.OfficialContract)
+	_info, _ = tokeninfo_crud.RowOnly(ctx, conds)
+	if _info != nil && !in.Force {
+		logger.Sugar().Infof("create tokeninfo,it is exist, %v", in.Info.Name)
+		return &npool.CreateTokenInfoResponse{Info: _info, Success: true, Msg: "it`s exist"}, nil
 	}
 
 	contract, err := eth.DeployToken(ctx, in.Info)
 	if err != nil {
+		logger.Sugar().Errorf("create tokeninfo failed,%v, contract official name: %v", err, in.Info.Name)
 		return &npool.CreateTokenInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
 	}
 
 	in.Info.PrivateContract = contract
-	if in.Force {
-		conds := cruder.NewConds()
-		conds.WithCond(tokeninfo.FieldOfficialContract, cruder.EQ, in.Info.OfficialContract)
-		_info, err := tokeninfo_crud.RowOnly(ctx, conds)
-		if err != nil {
-			return &npool.CreateTokenInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
-		}
-
+	if _info != nil {
 		in.Info.ID = _info.ID
 		info, err = tokeninfo_crud.Update(ctx, in.Info)
 		if err != nil {
+			logger.Sugar().Errorf("create tokeninfo failed%v, contract official name: %v", err, in.Info.Name)
 			return &npool.CreateTokenInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
 		}
 	} else {
 		info, err = tokeninfo_crud.Create(ctx, in.Info)
 		if err != nil {
+			logger.Sugar().Errorf("create tokeninfo failed%v, contract official name: %v", err, in.Info.Name)
 			return &npool.CreateTokenInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
 		}
 	}
 
+	msg := fmt.Sprintf("contract official name: %v", in.Info.Name)
+	logger.Sugar().Infof("create tokeninfo success, %v", msg)
 	return &npool.CreateTokenInfoResponse{
 		Info:    info,
 		Success: true,
-		Msg:     fmt.Sprintf("Contract address: %v", contract),
+		Msg:     msg,
 	}, nil
 }
 
 func (s *Server) GetTokenInfos(ctx context.Context, in *npool.GetTokenInfosRequest) (*npool.GetTokenInfosResponse, error) {
 	conds, err := tokenInfoCondsToConds(in.Conds)
 	if err != nil {
-		logger.Sugar().Error(err)
+		logger.Sugar().Errorf("get tokeninfos failed, %v", err)
 		return &npool.GetTokenInfosResponse{}, status.Error(codes.Unavailable, err.Error())
 	}
 
 	infos, total, err := tokeninfo_crud.All(ctx, conds)
 	if err != nil {
-		logger.Sugar().Error(err)
+		logger.Sugar().Errorf("get tokeninfos failed, %v", err)
 		return &npool.GetTokenInfosResponse{}, status.Error(codes.Unavailable, err.Error())
 	}
 
+	logger.Sugar().Infof("get tokeninfos success,total %v", total)
 	ret := &npool.GetTokenInfosResponse{Total: uint32(total), Infos: infos}
 	return ret, nil
 }

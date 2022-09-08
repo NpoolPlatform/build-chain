@@ -17,6 +17,7 @@ import (
 	"github.com/NpoolPlatform/build-chain/pkg/config"
 	"github.com/NpoolPlatform/build-chain/pkg/db"
 	res "github.com/NpoolPlatform/build-chain/resource"
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -30,11 +31,20 @@ var runCmd = &cli.Command{
 	Name:    "run",
 	Aliases: []string{"r"},
 	Usage:   "Run Build Chain daemon",
+	After: func(c *cli.Context) error {
+		return logger.Sync()
+	},
 	Before: func(ctx *cli.Context) error {
 		err := config.Init("./", serviceName)
 		if err != nil {
 			panic(fmt.Sprintf("fail to init config %v: %v", serviceName, err))
 		}
+
+		err = logger.Init(logger.DebugLevel, fmt.Sprintf("%v/%v.log", logDir, serviceName))
+		if err != nil {
+			panic(fmt.Errorf("fail to init logger: %v", err))
+		}
+
 		// TODO: elegent set or get env
 		config.SetENV(&config.ENVInfo{
 			LogDir:      logDir,
@@ -51,6 +61,15 @@ var runCmd = &cli.Command{
 			Required:    false,
 			Value:       "",
 			Destination: &ethEndpoint,
+		},
+		&cli.StringFlag{
+			Name:        "log dir",
+			Aliases:     []string{"l"},
+			Usage:       "log fir",
+			EnvVars:     []string{"ENV_LOG_DIR"},
+			Required:    false,
+			Value:       "./",
+			Destination: &logDir,
 		},
 	},
 	Action: func(c *cli.Context) error {

@@ -195,7 +195,7 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 func Crawl(info *CrawlTaskInfo) {
 	bcConn, err := bc_client.NewClientConn(context.Background(), info.Host)
 	if err != nil {
-		fmt.Printf("faild: connect server faild, %v\n", err)
+		fmt.Printf("failed: connect server failed, %v\n", err)
 		return
 	}
 	ctx := context.Background()
@@ -212,18 +212,21 @@ func Crawl(info *CrawlTaskInfo) {
 	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>")
 	successData := []*proto.TokenInfo{}
 	var wg sync.WaitGroup
+	var lock sync.Mutex
 	for _, v := range addresses {
 		wg.Add(1)
-		go func() {
+		go func(addr string) {
 			defer wg.Done()
-			info, err := CrawlOne(ctx, bcConn, v, info.Force)
+			info, err := CrawlOne(ctx, bcConn, addr, info.Force)
 			if err == nil {
 				fmt.Printf("success create token name: %v, official contract :%v\n", info.Name, info.OfficialContract)
+				lock.Lock()
 				successData = append(successData, info)
+				lock.Unlock()
 				return
 			}
 			fmt.Println(err)
-		}()
+		}(v)
 		// prevent to be baned
 		time.Sleep(CrawlInterval)
 	}
@@ -240,7 +243,7 @@ func CrawlOne(ctx context.Context, bcConn *bc_client.BuildChainClientConn, addr 
 
 	resp1, err := bcConn.GetTokenInfos(ctx, &proto.GetTokenInfosRequest{Conds: conds})
 	if err != nil {
-		return nil, fmt.Errorf("faild check address %v, %v", addr, err)
+		return nil, fmt.Errorf("failed check address %v, %v", addr, err)
 	}
 
 	if resp1.Total != 0 && !force {
@@ -249,16 +252,25 @@ func CrawlOne(ctx context.Context, bcConn *bc_client.BuildChainClientConn, addr 
 
 	token, err = CrawlContractInfo(addr)
 	if err != nil {
-		return nil, fmt.Errorf("faild crawl address %v, %v", addr, err)
+		return nil, fmt.Errorf("failed crawl address %v, %v", addr, err)
 	}
 
-	resp2, err := bcConn.CreateTokenInfo(ctx, &proto.CreateTokenInfoRequest{
-		Force: force,
-		Info:  token,
-	})
+	retry := true
+	var resp2 *proto.CreateTokenInfoResponse
+	for i := 0; i < 3 && retry; i++ {
+		retry = false
+		resp2, err = bcConn.CreateTokenInfo(ctx, &proto.CreateTokenInfoRequest{
+			Force: force,
+			Info:  token,
+		})
+		if err != nil && strings.Contains(err.Error(), "replacement transaction underpriced") {
+			i--
+			retry = true
+		}
+	}
 
 	if err != nil {
-		return nil, fmt.Errorf("faild create token %v, %v", token.Name, err)
+		return nil, fmt.Errorf("failed create token %v, %v", token.Name, err)
 	}
 	token.Remark = resp2.Msg
 	return token, nil

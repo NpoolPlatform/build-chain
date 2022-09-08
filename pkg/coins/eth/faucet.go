@@ -133,7 +133,7 @@ func ETHFaucet(_to, amountStr string) (string, error) {
 
 	amount, ok := big.NewFloat(0).SetString(amountStr)
 	if !ok {
-		return "", fmt.Errorf("parse amount %v faild", amountStr)
+		return "", fmt.Errorf("parse amount %v failed", amountStr)
 	}
 
 	amount.Mul(amount, big.NewFloat(math.Pow10(EthDecimal)))

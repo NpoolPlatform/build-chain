@@ -8,6 +8,7 @@ import (
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth"
 	tokeninfo_crud "github.com/NpoolPlatform/build-chain/pkg/crud/v1/tokeninfo"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	npool "github.com/NpoolPlatform/message/npool/build-chain"
 	"google.golang.org/grpc/codes"
@@ -22,7 +23,8 @@ func (s *Server) Faucet(ctx context.Context, in *npool.FaucetRequst) (*npool.Fau
 
 	info, err := tokeninfo_crud.RowOnly(ctx, conds)
 	if err != nil {
-		return ret, status.Error(codes.InvalidArgument, fmt.Sprintf("faild to query tokeninfo,%v", err))
+		logger.Sugar().Errorf("faucet failed, %v", err)
+		return ret, status.Error(codes.InvalidArgument, fmt.Sprintf("failed to query tokeninfo,%v", err))
 	}
 
 	var txHash string
@@ -33,10 +35,12 @@ func (s *Server) Faucet(ctx context.Context, in *npool.FaucetRequst) (*npool.Fau
 		txHash, err = eth.ETHFaucet(in.To, in.Amount)
 	}
 	if err != nil {
-		return ret, status.Error(codes.InvalidArgument, fmt.Sprintf("faild to air-drop,%v", err))
+		logger.Sugar().Errorf("faucet failed, %v", err)
+		return ret, status.Error(codes.InvalidArgument, fmt.Sprintf("failed to air-drop,%v", err))
 	}
 
 	ret.Msg = fmt.Sprintf("airdrop tx-id:%v", txHash)
 	ret.Success = true
+	logger.Sugar().Infof("faucet success, %v", ret.Msg)
 	return ret, nil
 }

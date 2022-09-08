@@ -38,7 +38,7 @@ type tmplStruct struct {
 func Gen(taskInfo *GenTaskInfo) {
 	conn, err := bc_client.NewClientConn(context.Background(), taskInfo.Host)
 	if err != nil {
-		fmt.Printf("faild: host %v can not connect, %v\n", taskInfo.Host, err)
+		fmt.Printf("failed: host %v can not connect, %v\n", taskInfo.Host, err)
 	}
 
 	conds := cruder.NewFilterConds()
@@ -46,7 +46,7 @@ func Gen(taskInfo *GenTaskInfo) {
 	conds.WithCond(tokeninfo.FieldTokenType, cruder.EQ, structpb.NewStringValue(taskInfo.TokenType))
 	resp, err := conn.GetTokenInfos(context.Background(), &proto.GetTokenInfosRequest{Conds: conds})
 	if err != nil {
-		fmt.Printf("faild: get tokeninfos by %v %v, %v\n", taskInfo.ChainType, taskInfo.TokenType, err)
+		fmt.Printf("failed: get tokeninfos by %v %v, %v\n", taskInfo.ChainType, taskInfo.TokenType, err)
 	}
 
 	tmplData := tmplStruct{
@@ -61,16 +61,16 @@ func Gen(taskInfo *GenTaskInfo) {
 	buff := new(bytes.Buffer)
 	err = temp.Execute(buff, tmplData)
 	if err != nil {
-		fmt.Printf("faild: generate code, %v\n", err)
+		fmt.Printf("failed: generate code, %v\n", err)
 	}
 
 	code, err := format.Source(buff.Bytes())
 	if err != nil {
-		fmt.Printf("faild: format code, %v\n", err)
+		fmt.Printf("failed: format code, %v\n", err)
 	}
 
 	if err := os.WriteFile(taskInfo.Out, code, WriteFilePermisson); err != nil {
-		fmt.Printf("faild: write file, %v\n", err)
+		fmt.Printf("failed: write file, %v\n", err)
 	}
 }
 

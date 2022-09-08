@@ -168,7 +168,7 @@ func Client() (*rpc.Client, error) {
 		}
 
 		if endpoint == "" {
-			endpoint = "http://192.168.49.1:8545"
+			endpoint = "http://127.0.0.1:8545"
 		}
 		client, err = rpc.Dial(endpoint)
 		if err != nil {

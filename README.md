@@ -17,13 +17,15 @@
 
 
 ## 说明
-![功能展示](docs/合约币.png)
+![功能展示](docs/smart coin.png)
+目前仅支持ethereum上的部分erc20币种（top100中支持23个币种）
 
 ### 新增功能
 - [x] eth链交互
 - [x] 快捷erc20最基础合约部署
 - [ ] 部署erc20非proxy合约
 - [ ] 部署erc20 proxy合约
+- [ ] 统一存入地址的大小写
 - [x] 基础erc20接水
 - [ ] eth接水
 - [ ] 水龙头功能
@@ -62,19 +64,25 @@
 | ENV_ETH_ENDPOINT | ip:port default(127.0.0.1:8545) | 用于server |
 
 ## 使用说明
-物理机启动server端，需要配置好server使用的环境变量。
-在浏览器可访问服务页面
-http://ServerIP:50490/
-页面上可申请已经部署且可支持的合约币
+物理机启动server端
+启动时需要配置eth测试链endpoint地址
+还需要运行build-chain目录下有BuildChain.viper.yaml文件
+```Shell
+./build-chain run --ee http://EthereumWalletIP:Port
+```
 
-
-使用cli工具连接server端，部署合约
+部署合约
+使用cli工具连接server端，使用crawl爬取ethscan.io上的合约数据，部署到测试链
 ```Shell
 # 查看参数
 ./build-chain crawl 
-# 部署ethscan中erc20-top-tokens 前1-50
-./build-chain crawl --host ServerIP:50491 -o 1 -l 50
-# 指定公网contract进行部署
+# 1.部署ethscan中erc20-top-tokens 前1-100，大约有23个币种可以成功部署
+./build-chain crawl --host ServerIP:50491 -o 1 -l 100
+# 2.指定公网contract进行部署
 ./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
 ```
 部署成功的合约可访问server端的web界面申请空投
+
+在浏览器可访问服务页面
+http://ServerIP:50490/
+页面上可申请已经部署且可支持的合约币

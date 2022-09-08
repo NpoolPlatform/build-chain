@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
 	cli "github.com/urfave/cli/v2"
 
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth"
+	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 )
 
 func init() {
@@ -21,6 +23,10 @@ var crawlCmd = &cli.Command{
 	Aliases: []string{"c"},
 	Usage:   "Crawl contract to private chain",
 	Before: func(ctx *cli.Context) error {
+		err := logger.Init(logger.DebugLevel, "./")
+		if err != nil {
+			panic(fmt.Errorf("fail to init logger: %v", err))
+		}
 		return nil
 	},
 	Flags: []cli.Flag{
