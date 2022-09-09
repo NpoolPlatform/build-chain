@@ -5,13 +5,15 @@ import (
 	"os"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/NpoolPlatform/build-chain/pkg/client/v1"
+	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
+	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	proto "github.com/NpoolPlatform/message/npool/build-chain"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func TestAll(t *testing.T) {
@@ -32,7 +34,11 @@ func TestAll(t *testing.T) {
 	conn, err := client.NewClientConn(context.Background(), host)
 	assert.Nil(t, err)
 
-	resp, err := conn.GetTokenInfos(context.Background(), &proto.GetTokenInfosRequest{})
+	conds := cruder.NewFilterConds()
+	conds.WithCond(tokeninfo.FieldChainType, cruder.EQ, structpb.NewStringValue(coins.EthereumChain))
+	conds.WithCond(tokeninfo.FieldTokenType, cruder.EQ, structpb.NewStringValue(coins.ERC20TOKEN))
+	resp, err := conn.GetTokenInfos(context.Background(), &proto.GetTokenInfosRequest{Conds: conds})
+
 	assert.Nil(t, err)
 	assert.Equal(t, resp.Total, uint32(len(resp.Infos)))
 
@@ -46,12 +52,5 @@ func TestAll(t *testing.T) {
 		})
 		assert.Nil(t, err)
 		assert.Equal(t, faucetResp.Success, true)
-	}
-
-	time.Sleep(3 * time.Second)
-	for _, info := range resp.Infos {
-		ret, err := eth.ERC20Balance(common.HexToAddress(info.PrivateContract), common.HexToAddress(to))
-		assert.Nil(t, err)
-		assert.Equal(t, ret, amount)
 	}
 }

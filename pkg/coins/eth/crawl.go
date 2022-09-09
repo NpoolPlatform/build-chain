@@ -16,7 +16,6 @@ import (
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
-	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	proto "github.com/NpoolPlatform/message/npool/build-chain"
 	"github.com/PuerkitoBio/goquery"
@@ -69,7 +68,7 @@ func CrawlERC20Rows(offset, limit int) ([]string, error) {
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
-		logger.Sugar().Error(err)
+		fmt.Println(err)
 	})
 
 	startPage := (offset-1)/50 + 1
@@ -178,7 +177,7 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
-		logger.Sugar().Error(err)
+		fmt.Println(err)
 	})
 
 	err = c.Visit(url)
