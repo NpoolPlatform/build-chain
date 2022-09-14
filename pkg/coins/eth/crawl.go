@@ -15,6 +15,7 @@ import (
 
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
+	"github.com/NpoolPlatform/build-chain/pkg/config"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	proto "github.com/NpoolPlatform/message/npool/build-chain"
@@ -179,6 +180,16 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 	c.OnError(func(r *colly.Response, err error) {
 		fmt.Println(err)
 	})
+
+	if allProxy, ok := config.LookupEnv("ALL_PROXY"); ok && allProxy != "" {
+		err = c.SetProxy(allProxy)
+	} else if allProxy, ok := config.LookupEnv("all_proxy"); ok && allProxy != "" {
+		err = c.SetProxy(allProxy)
+	}
+
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	err = c.Visit(url)
 	if err != nil {
