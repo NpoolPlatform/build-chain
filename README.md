@@ -12,6 +12,8 @@
   - [最佳实践](#最佳实践)
   - [环境变量](#环境变量)
   - [使用说明](#使用说明)
+  - [补充](#补充)
+    - [ethereum测试链启动指南](#ethereum测试链启动指南)
 
 -----------
 
@@ -74,6 +76,10 @@
 部署合约
 使用cli工具连接server端，使用crawl爬取ethscan.io上的合约数据，部署到测试链
 ```Shell
+# 必要时需要设置代理
+# export all_proxy=socks5://IP:PORT
+# export https_proxy=socks5://IP:PORT
+# export no_proxy='my_ip/netmask'
 # 查看参数
 ./build-chain crawl 
 # 1.部署ethscan中erc20-top-tokens 前1-100，大约有23个币种可以成功部署
@@ -86,3 +92,13 @@
 在浏览器可访问服务页面
 http://ServerIP:50490/
 页面上可申请已经部署且可支持的合约币
+
+## 补充
+### ethereum测试链启动指南
+启动eth测试链时，需要指定http地址以及开启允许unlock
+建议启动方式如下
+```Shell
+nohup ./geth --http --datadir ./node0 --dev --dev.period 1 --mine --miner.threads 2 --http.api 'eth,net,web3,miner,personal' --http.addr 0.0.0.0 --allow-insecure-unlock > geth.log 2>&1 &
+
+./geth attach ./node0/geth.ipc
+```
