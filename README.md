@@ -18,12 +18,13 @@
 
 -----------
 
-
 ## 说明
+
 ![功能展示](docs/smart_coin.png)
 目前仅支持ethereum上的部分erc20币种（top100中支持23个币种）
 
 ### 新增功能
+
 - [x] eth链交互
 - [x] 快捷erc20最基础合约部署
 - [ ] 部署erc20非proxy合约
@@ -40,6 +41,7 @@
 - [ ] 流程上支持快速加入一个币种
 
 ## 功能
+
 合约工具服务
 
 - [x] 单独作为工具服务存在
@@ -64,20 +66,23 @@
 
 ## 环境变量
 
-| 变量名称         | 支持的值                        | 说明       |
-|:-----------------|:--------------------------------|:---------|
+| 变量名称             | 支持的值                            | 说明       |
+|:---------------- |:------------------------------- |:-------- |
 | ENV_ETH_ENDPOINT | ip:port default(127.0.0.1:8545) | 用于server |
 
 ## 使用说明
+
 在钱包机上启动server端
 启动时需要配置eth测试链endpoint地址
 还需要运行build-chain目录下有BuildChain.viper.yaml文件
+
 ```Shell
 ./build-chain run --ee http://EthereumWalletIP:Port
 ```
 
 部署合约
 使用cli工具连接server端，使用crawl爬取ethscan.io上的合约数据，部署到测试链
+
 ```Shell
 # 必要时需要设置代理
 # export all_proxy=socks5://IP:PORT
@@ -90,6 +95,7 @@
 # 2.指定公网contract进行部署
 ./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
 ```
+
 部署成功的合约可访问server端的web界面申请空投
 
 在浏览器可访问服务页面
@@ -97,9 +103,12 @@ http://ServerIP:50490/
 页面上可申请已经部署且可支持的合约币
 
 ## 补充
+
 ### ethereum测试链启动指南
+
 启动eth测试链时，需要指定http地址以及开启允许unlock
 建议启动方式如下
+
 ```Shell
 nohup ./geth --http --datadir ./node0 --dev --dev.period 1 --mine --miner.threads 2 --http.api 'eth,net,web3,miner,personal' --http.addr 0.0.0.0 --allow-insecure-unlock > geth.log 2>&1 &
 
@@ -107,16 +116,22 @@ nohup ./geth --http --datadir ./node0 --dev --dev.period 1 --mine --miner.thread
 ```
 
 ## 增加合约币流程
-1 启动build-chain server端
-2 打开server的web页面（浏览器访问ServerIP:50490）,可查看已有币种信息
-3 使用build-chain cli工具将ethscan.io上的合约部署到测试网
-  3.1 可指定公网合约地址部署
-  例如：
-  ./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
-  ![指定单个合约地址](docs/crawl_one_contract.jpg)
-  3.2 可指定ethscan批量合约部署
-  例如：
-  ./build-chain crawl --host ServerIP:50491 -o 1 -l 100
-  ./build-chain crawl --host ServerIP:50491 -o 52 -l 58
-  ![指定批量合约](docs/crawl_batch_contract.jpg)
-4 另外sphinx-plugin在测试模式下启动需要build-chain server也启动（当前就eth测试环境需要），启动后查询需要的测试合约地址，当需要的合约类型不存在时会请求build-chain部署好并自动获取合约地址。
+
+1. 启动build-chain server端
+
+2. 打开server的web页面（浏览器访问ServerIP:50490）,可查看已有币种信息
+
+3. 使用build-chain cli工具将ethscan.io上的合约部署到测试网
+   
+   + 可指定公网合约地址部署
+       例如：
+       ./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
+       ![指定单个合约地址](docs/crawl_one_contract.jpg)
+   
+   + 可指定ethscan批量合约部署
+       例如：
+       ./build-chain crawl --host ServerIP:50491 -o 1 -l 100
+       ./build-chain crawl --host ServerIP:50491 -o 52 -l 58
+       ![指定批量合约](docs/crawl_batch_contract.jpg)
+
+4. 另外sphinx-plugin在测试模式下启动需要build-chain server也启动（当前就eth测试环境需要），启动后查询需要的测试合约地址，当需要的合约类型不存在时会请求build-chain部署好并自动获取合约地址。
