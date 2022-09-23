@@ -14,6 +14,7 @@
   - [使用说明](#使用说明)
   - [补充](#补充)
     - [ethereum测试链启动指南](#ethereum测试链启动指南)
+  - [增加合约币流程](#增加合约币流程)
 
 -----------
 
@@ -28,13 +29,15 @@
 - [ ] 部署erc20非proxy合约
 - [ ] 部署erc20 proxy合约
 - [ ] 统一存入地址的大小写
+- [ ] build-chain server可以不和eth-wallet部署到同一个物理环境
 - [x] 基础erc20接水
-- [ ] eth接水
-- [ ] 水龙头功能
+- [x] eth接水
+- [x] 水龙头功能
 - [ ] 快捷erc20非proxy合约部署
 - [ ] tron链交互
 - [ ] filecoin链交互
 - [ ] 自动显示账户、币种细节（web页面选中自动查询币种信息、账户信息）
+- [ ] 流程上支持快速加入一个币种
 
 ## 功能
 合约工具服务
@@ -66,7 +69,7 @@
 | ENV_ETH_ENDPOINT | ip:port default(127.0.0.1:8545) | 用于server |
 
 ## 使用说明
-物理机启动server端
+在钱包机上启动server端
 启动时需要配置eth测试链endpoint地址
 还需要运行build-chain目录下有BuildChain.viper.yaml文件
 ```Shell
@@ -102,3 +105,18 @@ nohup ./geth --http --datadir ./node0 --dev --dev.period 1 --mine --miner.thread
 
 ./geth attach ./node0/geth.ipc
 ```
+
+## 增加合约币流程
+1 启动build-chain server端
+2 打开server的web页面（浏览器访问ServerIP:50490）,可查看已有币种信息
+3 使用build-chain cli工具将ethscan.io上的合约部署到测试网
+  3.1 可指定公网合约地址部署
+  例如：
+  ./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
+  ![指定单个合约地址](docs/crawl_one_contrac.jpg)
+  3.2 可指定ethscan批量合约部署
+  例如：
+  ./build-chain crawl --host ServerIP:50491 -o 1 -l 100
+  ./build-chain crawl --host ServerIP:50491 -o 52 -l 58
+  ![指定批量合约](docs/crawl_batch_contract.jpg)
+4 另外sphinx-plugin在测试模式下启动需要build-chain server也启动（当前就eth测试环境需要），启动后查询需要的测试合约地址，当需要的合约类型不存在时会请求build-chain部署好并自动获取合约地址。
