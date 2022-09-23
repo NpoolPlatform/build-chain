@@ -20,7 +20,7 @@
 
 
 ## 说明
-![功能展示](docs/smart coin.png)
+![功能展示](docs/smart_coin.png)
 目前仅支持ethereum上的部分erc20币种（top100中支持23个币种）
 
 ### 新增功能
@@ -113,7 +113,7 @@ nohup ./geth --http --datadir ./node0 --dev --dev.period 1 --mine --miner.thread
   3.1 可指定公网合约地址部署
   例如：
   ./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
-  ![指定单个合约地址](docs/crawl_one_contrac.jpg)
+  ![指定单个合约地址](docs/crawl_one_contract.jpg)
   3.2 可指定ethscan批量合约部署
   例如：
   ./build-chain crawl --host ServerIP:50491 -o 1 -l 100
