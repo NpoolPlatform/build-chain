@@ -125,12 +125,15 @@ nohup ./geth --http --datadir ./node0 --dev --dev.period 1 --mine --miner.thread
    
    + 可指定公网合约地址部署
        例如：
+
        ./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
        ![指定单个合约地址](docs/crawl_one_contract.jpg)
    
    + 可指定ethscan批量合约部署
        例如：
+       
        ./build-chain crawl --host ServerIP:50491 -o 1 -l 100
+       
        ./build-chain crawl --host ServerIP:50491 -o 52 -l 58
        ![指定批量合约](docs/crawl_batch_contract.jpg)
 
