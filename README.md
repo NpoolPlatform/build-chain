@@ -73,10 +73,9 @@
 ## 使用说明
 
 在钱包机上启动server端
-启动时需要配置eth测试链endpoint地址
-还需要运行build-chain目录下有BuildChain.viper.yaml文件
 
 ```Shell
+# 启动时需要配置eth测试链endpoint地址,还需要运行build-chain目录下有BuildChain.viper.yaml文件
 ./build-chain run --ee http://EthereumWalletIP:Port
 ```
 
@@ -99,7 +98,7 @@
 部署成功的合约可访问server端的web界面申请空投
 
 在浏览器可访问服务页面
-http://ServerIP:50490/
+http://ServerIP:50490/,
 页面上可申请已经部署且可支持的合约币
 
 ## 补充
