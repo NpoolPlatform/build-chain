@@ -64,7 +64,7 @@ var runCmd = &cli.Command{
 			Destination: &ethEndpoint,
 		},
 		&cli.StringFlag{
-			Name:        "inverstor key",
+			Name:        "inverstor-key",
 			Aliases:     []string{"ik"},
 			Usage:       "it`s usually a private key,which used for deploying contract and distributing tokens",
 			EnvVars:     []string{"ENV_INVERSTOR_KEY"},

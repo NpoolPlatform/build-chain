@@ -12,6 +12,9 @@
   - [最佳实践](#最佳实践)
   - [环境变量](#环境变量)
   - [使用说明](#使用说明)
+    - [docker部署](#docker部署)
+    - [依赖coinbase部署方式](#依赖coinbase部署方式)
+    - [部署合约](#部署合约)
   - [补充](#补充)
     - [ethereum测试链启动指南](#ethereum测试链启动指南)
   - [增加合约币流程](#增加合约币流程)
@@ -68,19 +71,32 @@
 
 | 变量名称             | 支持的值                            | 说明       |
 |:---------------- |:------------------------------- |:-------- |
-| ENV_ETH_ENDPOINT | ip:port default(127.0.0.1:8545) | 用于server |
+| ENV_ETH_ENDPOINT | ip:port default(127.0.0.1:8545) | 必填参数-用于server |
+| ENENV_INVERSTOR_KEY | privateKey | 可选参数-用于部署合约和提供水龙头手续费（请提供有一定ETH的私钥） |
 
 ## 使用说明
+### docker部署
+docker启动
+```shell
+docker run --name buildc -p 50491:50491 -p 50490:50490 -e ENV_ETH_ENDPOINT="eth_wallet_endpoint" -e ENENV_INVERSTOR_KEY="privateKey" buildchain:test
+```
 
-在钱包机上启动server端
+G网环境启动示例
+```shell
+docker run --name buildc -e ENV_ETH_ENDPOINT="https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161" -e ENENV_INVERSTOR_KEY="7a87e4528e013e533d63dd7661ead74fc3b25289652469a289bdf89b84e15c21" buildchain:test
+```
+
+### 依赖coinbase部署方式
+需要在钱包机所在的环境启动server端
 启动时需要配置eth测试链endpoint地址
 还需要运行build-chain目录下有BuildChain.viper.yaml文件
 
 ```Shell
+# --ik 全称 
 ./build-chain run --ee http://EthereumWalletIP:Port
 ```
 
-部署合约
+### 部署合约
 使用cli工具连接server端，使用crawl爬取ethscan.io上的合约数据，部署到测试链
 
 ```Shell

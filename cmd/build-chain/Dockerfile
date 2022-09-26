@@ -1,9 +1,8 @@
-FROM uhub.service.ucloud.cn/entropypool/alpine:3.16
+FROM debian:stable-slim
 
 COPY build-chain /usr/local/bin/build-chain
-
+COPY BuildChain.viper.yaml /etc/BuildChain/BuildChain.viper.yaml
 ENV ENV_LOG_DIR=/var/log \
     ENV_LOG_LEVEL=debug
 
-ENTRYPOINT ["build-chain"]
-CMD ["help"]
+CMD ["build-chain","run","--ee","${ENV_ETH_ENDPOINT}","--ik","${ENV_INVERSTOR_KEY}"]
