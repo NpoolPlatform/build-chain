@@ -47,8 +47,9 @@ var runCmd = &cli.Command{
 
 		// TODO: elegent set or get env
 		config.SetENV(&config.ENVInfo{
-			LogDir:      logDir,
-			EthEndpoint: ethEndpoint,
+			LogDir:       logDir,
+			EthEndpoint:  ethEndpoint,
+			InverstorKey: inverstorKey,
 		})
 		return nil
 	},
@@ -61,6 +62,15 @@ var runCmd = &cli.Command{
 			Required:    false,
 			Value:       "",
 			Destination: &ethEndpoint,
+		},
+		&cli.StringFlag{
+			Name:        "inverstor key",
+			Aliases:     []string{"ik"},
+			Usage:       "it`s usually a private key,which used for deploying contract and distributing tokens",
+			EnvVars:     []string{"ENV_INVERSTOR_KEY"},
+			Required:    false,
+			Value:       "",
+			Destination: &inverstorKey,
 		},
 		&cli.StringFlag{
 			Name:        "log dir",

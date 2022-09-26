@@ -69,6 +69,8 @@ var global *ENVInfo
 type ENVInfo struct {
 	LogDir      string
 	EthEndpoint string
+	// used for deploying contract and distributing token(faucet)
+	InverstorKey string
 }
 
 func LookupEnv(key string) (string, bool) {

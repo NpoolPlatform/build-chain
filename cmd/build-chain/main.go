@@ -19,8 +19,9 @@ const (
 )
 
 var (
-	logDir      string
-	ethEndpoint string
+	logDir       string
+	ethEndpoint  string
+	inverstorKey string
 )
 
 func main() {

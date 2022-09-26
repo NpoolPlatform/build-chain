@@ -25,8 +25,8 @@ var genCmd = &cli.Command{
 	},
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:        "host.",
-			Aliases:     []string{"ho"},
+			Name:        "buildChain-server",
+			Aliases:     []string{"bc-server"},
 			Usage:       "required, host to build-chain server",
 			Required:    true,
 			Value:       "",

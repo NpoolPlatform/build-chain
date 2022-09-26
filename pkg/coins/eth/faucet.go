@@ -49,11 +49,6 @@ func ERC20Faucet(_contract, _to, amount string) (string, error) {
 		return "", err
 	}
 
-	err = UnlockCoinbase(client)
-	if err != nil {
-		return "", err
-	}
-
 	deci, err := token.Decimals(nil)
 	if err != nil {
 		return "", err

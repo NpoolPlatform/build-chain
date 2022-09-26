@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
+	"io"
 
 	"fmt"
 	"math/big"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/config"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -28,22 +30,6 @@ func Coinbase(client *rpc.Client) (string, error) {
 	var coinbase string
 	err := client.Call(&coinbase, "eth_coinbase")
 	return coinbase, err
-}
-
-func UnlockCoinbase(client *rpc.Client) error {
-	coinbase, err := Coinbase(client)
-	if err != nil {
-		return err
-	}
-	var unlock bool
-	err = client.Call(&unlock, "personal_unlockAccount", coinbase, "")
-	if err != nil {
-		return err
-	}
-	if !unlock {
-		return fmt.Errorf("coinbase unlock failed")
-	}
-	return nil
 }
 
 func DeployContract(client *rpc.Client, bytecode string) (common.Address, error) {
@@ -84,7 +70,9 @@ func DeployContract(client *rpc.Client, bytecode string) (common.Address, error)
 	if err != nil {
 		return contractAddr, err
 	}
+
 	err = backend.SendTransaction(ctx, signedTx)
+
 	if err != nil {
 		return contractAddr, err
 	}
@@ -97,16 +85,47 @@ var auth *bind.TransactOpts
 
 func GetAuth(client *rpc.Client) (*bind.TransactOpts, error) {
 	var err error
-	if auth == nil {
-		auth, err = getAuth(client)
-		if err != nil {
-			return nil, err
-		}
+	if auth != nil {
+		return auth, nil
+	}
+	iKey := ""
+	if config.GetENV() != nil {
+		iKey = config.GetENV().InverstorKey
+	}
+
+	if iKey != "" {
+		auth, err = getAuthFromPri(client, iKey)
+	} else {
+		auth, err = getAuthFromCoinbase(client)
+	}
+
+	if err != nil {
+		panic(err)
+	}
+
+	return auth, nil
+}
+
+func getAuthFromPri(client *rpc.Client, priKey string) (*bind.TransactOpts, error) {
+	privateKey, err := crypto.HexToECDSA(priKey)
+	if err != nil {
+		return nil, fmt.Errorf("parse key err: %v", err)
+	}
+
+	chainID, err := ethclient.NewClient(client).NetworkID(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("get eth chainID err: %v", err)
+	}
+
+	// build auth
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+	if err != nil {
+		return nil, fmt.Errorf("conn eth client err: %v", err)
 	}
 	return auth, nil
 }
 
-func getAuth(client *rpc.Client) (*bind.TransactOpts, error) {
+func getAuthFromCoinbase(client *rpc.Client) (*bind.TransactOpts, error) {
 	coinbase, err := Coinbase(client)
 	if err != nil {
 		return nil, err
@@ -149,8 +168,24 @@ func getAuth(client *rpc.Client) (*bind.TransactOpts, error) {
 		return nil, fmt.Errorf("only support testnet")
 	}
 
-	// get private key
-	auth, err := bind.NewTransactorWithChainID(wallet, "", chainID)
+	// getPrivateKey
+	json, err := io.ReadAll(wallet)
+	if err != nil {
+		return nil, err
+	}
+	key, err := keystore.DecryptKey(json, "")
+	if err != nil {
+		return nil, err
+	}
+
+	// parse privateKey to hex string
+	// privateKeyBytes := crypto.FromECDSA(key.PrivateKey)
+	// privateKeyBytesHex := make([]byte, len(privateKeyBytes)*2)
+	// hex.Encode(privateKeyBytesHex, privateKeyBytes)
+	// fmt.Println("privateKey:", string(privateKeyBytesHex))
+
+	// build auth
+	auth, err := bind.NewKeyedTransactorWithChainID(key.PrivateKey, chainID)
 	if err != nil {
 		return nil, fmt.Errorf("conn eth client err: %v", err)
 	}

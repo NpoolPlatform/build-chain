@@ -2,6 +2,10 @@ package eth
 
 import (
 	"context"
+	"crypto/ecdsa"
+
+	"github.com/ethereum/go-ethereum/crypto"
+
 	"encoding/json"
 	"errors"
 	"math/big"
@@ -20,7 +24,7 @@ import (
 var (
 	ErrContractNotExist = errors.New("contract data do not exist")
 	ErrTrasferFailed    = errors.New("trasfer failed")
-	maxRetries          = 5
+	maxRetries          = 180
 )
 
 func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
@@ -29,11 +33,6 @@ func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
 		return "", err
 	}
 	defer client.Close()
-
-	err = UnlockCoinbase(client)
-	if err != nil {
-		return "", err
-	}
 
 	// TODO: support other erc20 token
 	contract, err := DeployBaseErc20(ctx, client, in)
@@ -99,15 +98,31 @@ func TransferSpy(ctx context.Context, client *rpc.Client, contract common.Addres
 		return err
 	}
 
-	toPri1, toPub1, err := GenPriAndPubKey()
+	// just for recycling eth,so do not generate private key
+	// pubkey:0xBcE9e4a7aa5eF6998439618771D4754596045b76
+	toPri1, err := crypto.HexToECDSA("fbc365d349db5994c94ceacd567cdcefc08d4d2ea463366b558f5e913e7d5e3b")
 	if err != nil {
 		return err
 	}
+	publicKey := toPri1.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return errors.New("create account error casting public key to ECDSA")
+	}
+	toPub1 := crypto.PubkeyToAddress(*publicKeyECDSA).Hex() // Hex String
 
-	_, toPub2, err := GenPriAndPubKey()
-	if err != nil {
-		return err
-	}
+	// auto gen key
+	// toPri1, toPub1, err := GenPriAndPubKey()
+	// if err != nil {
+	// 	return err
+	// }
+
+	toPub2 := common.HexToAddress("0xAfBacba7435dAB4b68E446bb4e8744174b592b57")
+	// auto gen key
+	// _, toPub2, err := GenPriAndPubKey()
+	// if err != nil {
+	// 	return err
+	// }
 
 	chainID, err := ethClient.NetworkID(ctx)
 	if err != nil {
@@ -120,13 +135,13 @@ func TransferSpy(ctx context.Context, client *rpc.Client, contract common.Addres
 	}
 
 	// faucet gas for transfer token
-	_, err = ETHFaucet(toPub1.String(), "1.888")
+	_, err = ETHFaucet(toPub1, "0.0002")
 	if err != nil {
 		return err
 	}
 
 	var amount int64 = 10000
-	err = transferSpy(token, coinbaseAuth, toPub1, amount)
+	err = transferSpy(token, coinbaseAuth, common.HexToAddress(toPub1), amount)
 	if err != nil {
 		return err
 	}
@@ -163,7 +178,7 @@ func transferSpy(token *erc20.Erc20, auth *bind.TransactOpts, toAddr common.Addr
 	if err != nil {
 		return err
 	}
-	if balance1.Int64() == balance0.Int64() {
+	if balance1.Int64() <= balance0.Int64() {
 		return ErrTrasferFailed
 	}
 	return nil
