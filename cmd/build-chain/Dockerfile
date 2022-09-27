@@ -7,8 +7,8 @@ ENV ENV_LOG_DIR=/var/log \
     ENV_ETH_ENDPOINT="" \
     ENV_INVERSTOR_KEY=""
 
-RUN apt-get -qq update \
-    && apt-get -qq install -y --no-install-recommends ca-certificates curl
+RUN apt-get  update \
+    && apt-get install -y --no-install-recommends ca-certificates curl
 
 WORKDIR /usr/local/bin/
 
