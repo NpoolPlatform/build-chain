@@ -3,6 +3,8 @@ package eth
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
+	"sync"
 
 	"github.com/ethereum/go-ethereum/crypto"
 
@@ -25,6 +27,7 @@ var (
 	ErrContractNotExist = errors.New("contract data do not exist")
 	ErrTrasferFailed    = errors.New("trasfer failed")
 	maxRetries          = 180
+	serialLock          sync.Mutex
 )
 
 func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
@@ -34,11 +37,16 @@ func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
 	}
 	defer client.Close()
 
+	serialLock.Lock()
 	// TODO: support other erc20 token
 	contract, err := DeployBaseErc20(ctx, client, in)
+	serialLock.Unlock()
+
 	if err != nil {
 		return "", err
 	}
+
+	fmt.Println(in.Name, contract)
 
 	for i := 0; i <= maxRetries; i++ {
 		ok, err := hasContractCode(ctx, client, contract)
@@ -52,7 +60,9 @@ func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
 		return "", err
 	}
 
+	serialLock.Lock()
 	err = TransferSpy(ctx, client, contract)
+	serialLock.Unlock()
 	if err != nil {
 		return "", err
 	}
