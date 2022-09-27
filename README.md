@@ -150,7 +150,7 @@ nohup ./geth --http --datadir ./node0 --dev --dev.period 1 --mine --miner.thread
        
        ./build-chain crawl --host ServerIP:50491 -o 1 -l 100
        
-       ./build-chain crawl --host ServerIP:50491 -o 52 -l 58
+       ./build-chain crawl --host ServerIP:50491 -o 52 -l 7
        ![指定批量合约](docs/crawl_batch_contract.jpg)
 
 4. 另外sphinx-plugin在测试模式下启动需要build-chain server也启动（当前就eth测试环境需要），启动后查询需要的测试合约地址，当需要的合约类型不存在时会请求build-chain部署好并自动获取合约地址。

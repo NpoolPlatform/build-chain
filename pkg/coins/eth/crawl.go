@@ -37,7 +37,7 @@ type CrawlTaskInfo struct {
 	TokenType string
 }
 
-var CrawlInterval = time.Second
+var CrawlInterval = time.Second * 2
 
 func CrawlERC20Rows(offset, limit int) ([]string, error) {
 	if offset <= 0 || limit < 1 {
