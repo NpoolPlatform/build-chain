@@ -3,7 +3,6 @@ package eth
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -45,8 +44,6 @@ func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	fmt.Println(in.Name, contract)
 
 	for i := 0; i <= maxRetries; i++ {
 		ok, err := hasContractCode(ctx, client, contract)
