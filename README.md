@@ -15,6 +15,7 @@
     - [docker部署](#docker部署)
     - [依赖coinbase部署方式](#依赖coinbase部署方式)
     - [部署合约](#部署合约)
+    - [sphinx-plugin支持](#sphinx-plugin支持)
   - [补充](#补充)
     - [ethereum测试链启动指南](#ethereum测试链启动指南)
   - [增加合约币流程](#增加合约币流程)
@@ -118,6 +119,9 @@ docker run --name buildchain  -p 50491:50491 -p 50490:50490 -e ENV_ETH_ENDPOINT=
 http://ServerIP:50490/
 页面上可申请已经部署且可支持的合约币
 
+### sphinx-plugin支持
+sphinx-plugin在测试模式下启动需要build-chain server也启动（当前就eth测试环境需要），启动后查询需要的测试合约地址，当需要的合约类型不存在时会请求build-chain部署好并自动获取合约地址。
+
 ## 补充
 
 ### ethereum测试链启动指南
@@ -152,5 +156,3 @@ nohup ./geth --http --datadir ./node0 --dev --dev.period 1 --mine --miner.thread
        
        ./build-chain crawl --host ServerIP:50491 -o 52 -l 7
        ![指定批量合约](docs/crawl_batch_contract.jpg)
-
-4. 另外sphinx-plugin在测试模式下启动需要build-chain server也启动（当前就eth测试环境需要），启动后查询需要的测试合约地址，当需要的合约类型不存在时会请求build-chain部署好并自动获取合约地址。
