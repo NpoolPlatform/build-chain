@@ -87,6 +87,7 @@ G网环境启动示例
 docker run --name buildchain  -p 50491:50491 -p 50490:50490 -e ENV_ETH_ENDPOINT="https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161" -e ENE_INVERSTOR_KEY="7a87e4528e013e533d63dd7661ead74fc3b25289652469a289bdf89b84e15c21" buildchain:test
 ```
 
+注：数据目录在/data，按需挂载到物理机或传入ENV_DATA_DIR环境变量修改
 ### 依赖coinbase部署方式
 需要在钱包机所在的环境启动server端
 启动时需要配置eth测试链endpoint地址

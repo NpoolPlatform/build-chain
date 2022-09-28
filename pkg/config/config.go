@@ -68,6 +68,7 @@ var global *ENVInfo
 
 type ENVInfo struct {
 	LogDir      string
+	DataDir     string
 	EthEndpoint string
 	// used for deploying contract and distributing token(faucet)
 	InverstorKey string

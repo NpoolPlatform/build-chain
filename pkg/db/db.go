@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/NpoolPlatform/build-chain/pkg/config"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent"
@@ -15,7 +16,10 @@ import (
 )
 
 func client() (*ent.Client, error) {
-	client, err := ent.Open("sqlite3", "buildchain.sqlite.db?cache=shared&_fk=1")
+	dataDir := config.GetENV().DataDir
+	dbFile := "buildchain.sqlite.db"
+	dbFileURL := fmt.Sprintf("%v/%v?cache=shared&_fk=1", dataDir, dbFile)
+	client, err := ent.Open("sqlite3", dbFileURL)
 	if err != nil {
 		return nil, err
 	}

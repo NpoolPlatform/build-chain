@@ -62,6 +62,12 @@ func ERC20Faucet(_contract, _to, amount string) (string, error) {
 	_value := _decimal.Mul(decimal.NewFromInt(Ten).Pow(decimal.NewFromInt(int64(deci)))).BigInt()
 
 	tx, err := token.Transfer(auth, to, _value)
+	if err != nil {
+		return "", err
+	}
+	if tx == nil {
+		return "", errors.New("transfer faild, please retry")
+	}
 	return tx.Hash().String(), err
 }
 

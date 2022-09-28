@@ -50,6 +50,7 @@ var runCmd = &cli.Command{
 			LogDir:       logDir,
 			EthEndpoint:  ethEndpoint,
 			InverstorKey: inverstorKey,
+			DataDir:      dataDir,
 		})
 		return nil
 	},
@@ -80,6 +81,15 @@ var runCmd = &cli.Command{
 			Required:    false,
 			Value:       "./",
 			Destination: &logDir,
+		},
+		&cli.StringFlag{
+			Name:        "data dir",
+			Aliases:     []string{"d"},
+			Usage:       "data fir",
+			EnvVars:     []string{"ENV_DATA_DIR"},
+			Required:    false,
+			Value:       "./",
+			Destination: &dataDir,
 		},
 	},
 	Action: func(c *cli.Context) error {

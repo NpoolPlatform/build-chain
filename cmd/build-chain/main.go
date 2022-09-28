@@ -22,6 +22,7 @@ var (
 	logDir       string
 	ethEndpoint  string
 	inverstorKey string
+	dataDir      string
 )
 
 func main() {
