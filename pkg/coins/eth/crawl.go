@@ -260,6 +260,7 @@ func CrawlOne(ctx context.Context, bcConn *bc_client.BuildChainClientConn, addr 
 	if err != nil {
 		return nil, fmt.Errorf("failed create token %v, %v", token.Name, err)
 	}
+	token.PrivateContract = resp2.Info.PrivateContract
 	token.Remark = resp2.Msg
 	return token, nil
 }
