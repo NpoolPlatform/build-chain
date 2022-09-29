@@ -249,7 +249,9 @@ func CrawlOne(ctx context.Context, bcConn *bc_client.BuildChainClientConn, addr 
 			Force: force,
 			Info:  token,
 		})
-		if err != nil && strings.Contains(err.Error(), "replacement transaction underpriced") {
+		if err != nil &&
+			strings.Contains(err.Error(), "replacement transaction underpriced") &&
+			strings.Contains(err.Error(), " max fee per gas less than block base fee") {
 			i--
 			retry = true
 		}
