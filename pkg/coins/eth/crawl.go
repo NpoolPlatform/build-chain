@@ -68,8 +68,9 @@ func CrawlERC20Rows(offset, limit int) ([]string, error) {
 		fmt.Println(err)
 	})
 
-	startPage := (offset-1)/50 + 1
-	endPage := (offset+limit-2)/50 + 1
+	itemsPrePage := 50
+	startPage := (offset-1)/itemsPrePage + 1
+	endPage := (offset+limit-2)/itemsPrePage + 1
 	for i := startPage; i <= endPage; i++ {
 		err = c.Visit(fmt.Sprintf("https://etherscan.io/tokens?p=%v", i))
 		if err != nil {
@@ -135,7 +136,8 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 		}
 
 		// filter erc20-proxy
-		if len(e.DOM.Find("#nav_subtabs").Children().Nodes) != 3 {
+		baseErc20NodeNum := 3
+		if len(e.DOM.Find("#nav_subtabs").Children().Nodes) != baseErc20NodeNum {
 			return
 		}
 
@@ -176,10 +178,6 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 	c.OnError(func(r *colly.Response, err error) {
 		fmt.Println(err)
 	})
-
-	if err != nil {
-		fmt.Println(err)
-	}
 
 	err = c.Visit(url)
 	if err != nil {
