@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/NpoolPlatform/build-chain/pkg/config"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	npool "github.com/NpoolPlatform/message/npool/build-chain"
@@ -28,6 +29,10 @@ func TestCURD(t *testing.T) {
 	if runByGithubAction, err := strconv.ParseBool(os.Getenv("RUN_BY_GITHUB_ACTION")); err == nil && runByGithubAction {
 		return
 	}
+	config.SetENV(&config.ENVInfo{
+		DataDir: "./",
+	})
+
 	ctx := context.Background()
 	token := &npool.TokenInfo{
 		Name:             fmt.Sprintf("test-%v", uuid.New().String()),
