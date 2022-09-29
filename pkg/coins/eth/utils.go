@@ -220,7 +220,7 @@ func GenPriAndPubKey() (pri *ecdsa.PrivateKey, pub common.Address, err error) {
 	}
 
 	privateKeyBytes := crypto.FromECDSA(pri)
-	priKeyBytesHexLen := len(privateKeyBytes) * 2
+	priKeyBytesHexLen := len(privateKeyBytes) * 2 //nolint
 	privateKeyBytesHex := make([]byte, priKeyBytesHexLen)
 	hex.Encode(privateKeyBytesHex, privateKeyBytes)
 

@@ -70,7 +70,7 @@ func CrawlERC20Rows(offset, limit int) ([]string, error) {
 
 	itemsPrePage := 50
 	startPage := (offset-1)/itemsPrePage + 1
-	endPage := (offset+limit-2)/itemsPrePage + 1
+	endPage := (offset-1+limit-1)/itemsPrePage + 1
 	for i := startPage; i <= endPage; i++ {
 		err = c.Visit(fmt.Sprintf("https://etherscan.io/tokens?p=%v", i))
 		if err != nil {
