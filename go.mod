@@ -9,7 +9,7 @@ require (
 	github.com/NpoolPlatform/message v0.0.0-20221014030109-1ed77bb1aaa3
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
-	github.com/ethereum/go-ethereum v1.10.21
+	github.com/ethereum/go-ethereum v1.10.23
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/gocolly/colly v1.2.0
 	github.com/google/uuid v1.3.0
