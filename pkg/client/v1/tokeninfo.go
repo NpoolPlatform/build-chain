@@ -19,7 +19,7 @@ type BuildChainClientConn struct {
 func NewClientConn(_ctx context.Context, host string) (*BuildChainClientConn, error) {
 	ctx, cancel := context.WithTimeout(_ctx, time.Second)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.DialContext(ctx, host, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithNoProxy())
 	if err != nil {
 		logger.Sugar().Errorf("fail to dial grpc %v: %v", host, err)
 		return nil, err
