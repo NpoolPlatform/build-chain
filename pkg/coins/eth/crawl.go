@@ -15,11 +15,14 @@ import (
 
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
+	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
+	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	proto "github.com/NpoolPlatform/message/npool/build-chain"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/gocolly/colly"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type erc20row struct {
@@ -236,6 +239,15 @@ func Crawl(info *CrawlTaskInfo) {
 }
 
 func CrawlOne(ctx context.Context, bcConn *bc_client.BuildChainClientConn, addr string, force bool) (token *proto.TokenInfo, err error) {
+	if !force {
+		conds := cruder.NewFilterConds()
+		conds.WithCond(tokeninfo.FieldOfficialContract, cruder.EQ, structpb.NewStringValue(addr))
+		resp, err := bcConn.GetTokenInfos(context.Background(), &proto.GetTokenInfosRequest{Conds: conds})
+		if err == nil && len(resp.Infos) != 0 {
+			return resp.Infos[0], nil
+		}
+	}
+
 	token, err = CrawlContractInfo(addr)
 	if err != nil {
 		return nil, fmt.Errorf("failed crawl address %v, %v", addr, err)
