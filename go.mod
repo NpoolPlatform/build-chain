@@ -6,7 +6,7 @@ require (
 	entgo.io/ent v0.11.2
 	github.com/NpoolPlatform/go-service-framework v0.0.0-20220726144547-41aefeaea336
 	github.com/NpoolPlatform/libent-cruder v0.0.0-20220801075201-cab5db8b6290
-	github.com/NpoolPlatform/message v0.0.0-20221014030109-1ed77bb1aaa3
+	github.com/NpoolPlatform/message v0.0.0-20230331105746-d35da1f1c402
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/ethereum/go-ethereum v1.10.23
@@ -20,7 +20,7 @@ require (
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.7.4
 	github.com/urfave/cli/v2 v2.11.1
-	google.golang.org/grpc v1.49.0
+	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.28.1
 )
 
@@ -77,13 +77,13 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/net v0.0.0-20220802222814-0bcc04d9c69b // indirect
-	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
+	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
