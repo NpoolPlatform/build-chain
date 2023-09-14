@@ -7,7 +7,6 @@ import (
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth"
 	tokeninfo_crud "github.com/NpoolPlatform/build-chain/pkg/crud/v1/tokeninfo"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	npool "github.com/NpoolPlatform/message/npool/build-chain"
@@ -18,9 +17,9 @@ import (
 func (s *Server) Faucet(ctx context.Context, in *npool.FaucetRequst) (*npool.FaucetResponse, error) {
 	ret := &npool.FaucetResponse{}
 
-	conds := cruder.NewConds()
-	conds.WithCond(tokeninfo.FieldOfficialContract, cruder.EQ, in.OfficialContract)
-
+	conds := &tokeninfo_crud.Conds{
+		OfficialContract: &cruder.Cond{Op: cruder.EQ, Val: in.OfficialContract},
+	}
 	info, err := tokeninfo_crud.RowOnly(ctx, conds)
 	if err != nil {
 		logger.Sugar().Errorf("faucet failed, %v", err)

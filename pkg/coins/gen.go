@@ -9,10 +9,9 @@ import (
 	"text/template"
 
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
+	basetypes "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	proto "github.com/NpoolPlatform/message/npool/build-chain"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 const WriteFilePermisson = 0600
@@ -41,9 +40,10 @@ func Gen(taskInfo *GenTaskInfo) {
 		fmt.Printf("failed: host %v can not connect, %v\n", taskInfo.Host, err)
 	}
 
-	conds := cruder.NewFilterConds()
-	conds.WithCond(tokeninfo.FieldChainType, cruder.EQ, structpb.NewStringValue(taskInfo.ChainType))
-	conds.WithCond(tokeninfo.FieldTokenType, cruder.EQ, structpb.NewStringValue(taskInfo.TokenType))
+	conds := &proto.Conds{
+		ChainType: &basetypes.StringVal{Op: cruder.EQ, Value: taskInfo.ChainType},
+		TokenType: &basetypes.StringVal{Op: cruder.EQ, Value: taskInfo.TokenType},
+	}
 	resp, err := conn.GetTokenInfos(context.Background(), &proto.GetTokenInfosRequest{Conds: conds})
 	if err != nil {
 		fmt.Printf("failed: get tokeninfos by %v %v, %v\n", taskInfo.ChainType, taskInfo.TokenType, err)

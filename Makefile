@@ -53,7 +53,7 @@ verify-spelling: ## Verifies spelling.
 	${REPO_ROOT}/hack/verify-spelling.sh
 
 gen-ent:
-	go get entgo.io/ent/cmd/ent
+	go get entgo.io/ent/cmd/ent@v0.11.2
 	go run entgo.io/ent/cmd/ent generate --feature entql,sql/upsert,privacy,schema/snapshot,sql/modifier ./pkg/db/ent/schema
 
 all: verify-build

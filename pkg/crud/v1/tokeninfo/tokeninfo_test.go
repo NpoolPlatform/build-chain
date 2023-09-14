@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/NpoolPlatform/build-chain/pkg/config"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	npool "github.com/NpoolPlatform/message/npool/build-chain"
 	"github.com/google/uuid"
@@ -63,8 +62,9 @@ func TestCURD(t *testing.T) {
 		assertTokenInfo(t, resp5, resp4)
 	}
 
-	conds := cruder.NewConds()
-	conds.WithCond(tokeninfo.FieldName, cruder.EQ, token.Name)
+	conds := &Conds{
+		Name: &cruder.Cond{Op: cruder.EQ, Val: token.Name},
+	}
 	resp6, n, err := Rows(ctx, conds, 0, 1)
 	if assert.Nil(t, err) {
 		assert.Equal(t, n, 1)

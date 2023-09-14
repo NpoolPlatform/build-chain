@@ -9,11 +9,10 @@ import (
 	"github.com/NpoolPlatform/build-chain/pkg/client/v1"
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
+	basetypes "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	proto "github.com/NpoolPlatform/message/npool/build-chain"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func TestAll(t *testing.T) {
@@ -34,9 +33,10 @@ func TestAll(t *testing.T) {
 	conn, err := client.NewClientConn(context.Background(), host)
 	assert.Nil(t, err)
 
-	conds := cruder.NewFilterConds()
-	conds.WithCond(tokeninfo.FieldChainType, cruder.EQ, structpb.NewStringValue(coins.EthereumChain))
-	conds.WithCond(tokeninfo.FieldTokenType, cruder.EQ, structpb.NewStringValue(coins.ERC20TOKEN))
+	conds := &proto.Conds{
+		ChainType: &basetypes.StringVal{Op: cruder.EQ, Value: coins.EthereumChain},
+		TokenType: &basetypes.StringVal{Op: cruder.EQ, Value: coins.ERC20TOKEN},
+	}
 	resp, err := conn.GetTokenInfos(context.Background(), &proto.GetTokenInfosRequest{Conds: conds})
 
 	assert.Nil(t, err)

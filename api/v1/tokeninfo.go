@@ -6,7 +6,6 @@ import (
 
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth"
 	tokeninfo_crud "github.com/NpoolPlatform/build-chain/pkg/crud/v1/tokeninfo"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	npool "github.com/NpoolPlatform/message/npool/build-chain"
@@ -14,44 +13,42 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func tokenInfoCondsToConds(conds cruder.FilterConds) (cruder.Conds, error) {
-	newConds := cruder.NewConds()
-
-	for k, v := range conds {
-		switch v.Op {
-		case cruder.EQ:
-		case cruder.GT:
-		case cruder.LT:
-		case cruder.LIKE:
-		default:
-			return nil, fmt.Errorf("invalid filter condition op")
-		}
-
-		switch k {
-		case tokeninfo.FieldID:
-			fallthrough //nolint
-		case tokeninfo.FieldName:
-			newConds = newConds.WithCond(k, v.Op, v.Val.GetStringValue())
-		case tokeninfo.FieldChainType:
-			newConds = newConds.WithCond(k, v.Op, v.Val.GetStringValue())
-		case tokeninfo.FieldTokenType:
-			newConds = newConds.WithCond(k, v.Op, v.Val.GetStringValue())
-		case tokeninfo.FieldUnit:
-			newConds = newConds.WithCond(k, v.Op, v.Val.GetStringValue())
-		case tokeninfo.FieldDecimal:
-			newConds = newConds.WithCond(k, v.Op, v.Val.GetStringValue())
-		case tokeninfo.FieldOfficialContract:
-			newConds = newConds.WithCond(k, v.Op, v.Val.GetStringValue())
-		case tokeninfo.FieldPrivateContract:
-			newConds = newConds.WithCond(k, v.Op, v.Val.GetStringValue())
-		case tokeninfo.FieldRemark:
-			newConds = newConds.WithCond(k, v.Op, v.Val.GetStringValue())
-		default:
-			return nil, fmt.Errorf("invalid tokeninfo field")
-		}
+func tokenInfoCondsToConds(conds *npool.Conds) *tokeninfo_crud.Conds {
+	newConds := &tokeninfo_crud.Conds{}
+	if conds == nil {
+		return newConds
 	}
-
-	return newConds, nil
+	if conds.ID != nil {
+		newConds.ID = &cruder.Cond{Op: conds.GetID().GetOp(), Val: conds.GetID().GetValue()}
+	}
+	if conds.Name != nil {
+		newConds.Name = &cruder.Cond{Op: conds.GetName().GetOp(), Val: conds.GetName().GetValue()}
+	}
+	if conds.ChainType != nil {
+		newConds.ChainType = &cruder.Cond{Op: conds.GetChainType().GetOp(), Val: conds.GetChainType().GetValue()}
+	}
+	if conds.TokenType != nil {
+		newConds.TokenType = &cruder.Cond{Op: conds.GetTokenType().GetOp(), Val: conds.GetTokenType().GetValue()}
+	}
+	if conds.Unit != nil {
+		newConds.Unit = &cruder.Cond{Op: conds.GetUnit().GetOp(), Val: conds.GetUnit().GetValue()}
+	}
+	if conds.Decimal != nil {
+		newConds.Decimal = &cruder.Cond{Op: conds.GetDecimal().GetOp(), Val: conds.GetDecimal().GetValue()}
+	}
+	if conds.OfficialContract != nil {
+		newConds.OfficialContract = &cruder.Cond{Op: conds.GetOfficialContract().GetOp(), Val: conds.GetOfficialContract().GetValue()}
+	}
+	if conds.PrivateContract != nil {
+		newConds.PrivateContract = &cruder.Cond{Op: conds.GetPrivateContract().GetOp(), Val: conds.GetPrivateContract().GetValue()}
+	}
+	if conds.Remark != nil {
+		newConds.Remark = &cruder.Cond{Op: conds.GetRemark().GetOp(), Val: conds.GetRemark().GetValue()}
+	}
+	if conds.Data != nil {
+		newConds.Data = &cruder.Cond{Op: conds.GetData().GetOp(), Val: conds.GetData().GetValue()}
+	}
+	return newConds
 }
 
 func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoRequest) (*npool.CreateTokenInfoResponse, error) {
@@ -59,8 +56,9 @@ func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoR
 	var _info *npool.TokenInfo
 	var info *npool.TokenInfo
 
-	conds := cruder.NewConds()
-	conds.WithCond(tokeninfo.FieldOfficialContract, cruder.EQ, in.Info.OfficialContract)
+	conds := &tokeninfo_crud.Conds{
+		OfficialContract: &cruder.Cond{Op: cruder.EQ, Val: in.Info.OfficialContract},
+	}
 	_info, _ = tokeninfo_crud.RowOnly(ctx, conds)
 	if _info != nil && !in.Force {
 		logger.Sugar().Infof("create tokeninfo,it is exist, %v", in.Info.Name)
@@ -99,12 +97,7 @@ func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoR
 }
 
 func (s *Server) GetTokenInfos(ctx context.Context, in *npool.GetTokenInfosRequest) (*npool.GetTokenInfosResponse, error) {
-	conds, err := tokenInfoCondsToConds(in.Conds)
-	if err != nil {
-		logger.Sugar().Errorf("get tokeninfos failed, %v", err)
-		return &npool.GetTokenInfosResponse{}, status.Error(codes.Unavailable, err.Error())
-	}
-
+	conds := tokenInfoCondsToConds(in.Conds)
 	infos, total, err := tokeninfo_crud.All(ctx, conds)
 	if err != nil {
 		logger.Sugar().Errorf("get tokeninfos failed, %v", err)

@@ -6,3 +6,4 @@ tmp
 *.log
 ./deploy.sh
 ./main.go
+*.sqlite.db
