@@ -11,7 +11,7 @@ import (
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
 	basetypes "github.com/NpoolPlatform/message/npool/basetypes/v1"
-	proto "github.com/NpoolPlatform/message/npool/build-chain"
+	proto "github.com/NpoolPlatform/message/npool/build-chain/v1"
 )
 
 const WriteFilePermisson = 0600
