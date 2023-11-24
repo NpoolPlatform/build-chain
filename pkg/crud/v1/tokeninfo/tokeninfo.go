@@ -56,17 +56,18 @@ func CreateSet(c *ent.TokenInfoCreate, req *Req) *ent.TokenInfoCreate {
 	return c
 }
 
-func UpdateSet(u *ent.TokenInfoUpdateOne, req *Req) (*ent.TokenInfoUpdateOne, error) {
+func UpdateSet(u *ent.TokenInfoUpdateOne, req *Req) *ent.TokenInfoUpdateOne {
 	if req.PrivateContract != nil {
 		u = u.SetPrivateContract(*req.PrivateContract)
 	}
 	if req.Remark != nil {
 		u = u.SetRemark(*req.Remark)
 	}
-	return u, nil
+	return u
 }
 
 type Conds struct {
+	ID               *cruder.Cond
 	EntID            *cruder.Cond
 	ChainType        *cruder.Cond
 	Name             *cruder.Cond
@@ -80,6 +81,18 @@ type Conds struct {
 }
 
 func SetQueryConds(q *ent.TokenInfoQuery, conds *Conds) (*ent.TokenInfoQuery, error) {
+	if conds.ID != nil {
+		id, ok := conds.ID.Val.(uint32)
+		if !ok {
+			return nil, fmt.Errorf("invalid id")
+		}
+		switch conds.ID.Op {
+		case cruder.EQ:
+			q.Where(enttokeninfo.ID(id))
+		default:
+			return nil, fmt.Errorf("invalid id field")
+		}
+	}
 	if conds.EntID != nil {
 		ent_id, ok := conds.EntID.Val.(uuid.UUID)
 		if !ok {

@@ -51,6 +51,8 @@ github.com/NpoolPlatform/message v0.0.0-20231020111219-963077006b79 h1:CQead5msE
 github.com/NpoolPlatform/message v0.0.0-20231020111219-963077006b79/go.mod h1:PxJpF0vSSOke+NJskbRBRQ2fK2K3SRe8zaEja+GxSHk=
 github.com/NpoolPlatform/message v0.0.0-20231123061952-48a50b39e2cb h1:s2Y+6wCEtdQ76jo9ihfVvhZUw3Nk2l5xnXwj0h5J5CM=
 github.com/NpoolPlatform/message v0.0.0-20231123061952-48a50b39e2cb/go.mod h1:PxJpF0vSSOke+NJskbRBRQ2fK2K3SRe8zaEja+GxSHk=
+github.com/NpoolPlatform/message v0.0.0-20231124070857-d73fc89aed45 h1:Pb6UPlnuB9hdpbaec68ep2vZAfaB3DEbT8ck/NLFmqU=
+github.com/NpoolPlatform/message v0.0.0-20231124070857-d73fc89aed45/go.mod h1:PxJpF0vSSOke+NJskbRBRQ2fK2K3SRe8zaEja+GxSHk=
 github.com/PuerkitoBio/goquery v1.8.0 h1:PJTF7AmFCFKk1N6V6jmKfrNH9tV5pNE6lZMkG0gta/U=
 github.com/PuerkitoBio/goquery v1.8.0/go.mod h1:ypIiRMtY7COPGk+I/YbZLbxsxn9g5ejnI2HSMtkjZvI=
 github.com/StackExchange/wmi v1.2.1 h1:VIkavFPXSjcnS+O8yTq7NI32k0R5Aj+v39y29VYDOSA=
