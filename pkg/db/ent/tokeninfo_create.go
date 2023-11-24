@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 
-	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -21,6 +20,20 @@ type TokenInfoCreate struct {
 	mutation *TokenInfoMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetEntID sets the "ent_id" field.
+func (tic *TokenInfoCreate) SetEntID(u uuid.UUID) *TokenInfoCreate {
+	tic.mutation.SetEntID(u)
+	return tic
+}
+
+// SetNillableEntID sets the "ent_id" field if the given value is not nil.
+func (tic *TokenInfoCreate) SetNillableEntID(u *uuid.UUID) *TokenInfoCreate {
+	if u != nil {
+		tic.SetEntID(*u)
+	}
+	return tic
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -160,16 +173,8 @@ func (tic *TokenInfoCreate) SetData(b []byte) *TokenInfoCreate {
 }
 
 // SetID sets the "id" field.
-func (tic *TokenInfoCreate) SetID(u uuid.UUID) *TokenInfoCreate {
+func (tic *TokenInfoCreate) SetID(u uint32) *TokenInfoCreate {
 	tic.mutation.SetID(u)
-	return tic
-}
-
-// SetNillableID sets the "id" field if the given value is not nil.
-func (tic *TokenInfoCreate) SetNillableID(u *uuid.UUID) *TokenInfoCreate {
-	if u != nil {
-		tic.SetID(*u)
-	}
 	return tic
 }
 
@@ -252,6 +257,13 @@ func (tic *TokenInfoCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (tic *TokenInfoCreate) defaults() error {
+	if _, ok := tic.mutation.EntID(); !ok {
+		if tokeninfo.DefaultEntID == nil {
+			return fmt.Errorf("ent: uninitialized tokeninfo.DefaultEntID (forgotten import ent/runtime?)")
+		}
+		v := tokeninfo.DefaultEntID()
+		tic.mutation.SetEntID(v)
+	}
 	if _, ok := tic.mutation.CreatedAt(); !ok {
 		if tokeninfo.DefaultCreatedAt == nil {
 			return fmt.Errorf("ent: uninitialized tokeninfo.DefaultCreatedAt (forgotten import ent/runtime?)")
@@ -293,18 +305,14 @@ func (tic *TokenInfoCreate) defaults() error {
 		v := tokeninfo.DefaultRemark
 		tic.mutation.SetRemark(v)
 	}
-	if _, ok := tic.mutation.ID(); !ok {
-		if tokeninfo.DefaultID == nil {
-			return fmt.Errorf("ent: uninitialized tokeninfo.DefaultID (forgotten import ent/runtime?)")
-		}
-		v := tokeninfo.DefaultID()
-		tic.mutation.SetID(v)
-	}
 	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (tic *TokenInfoCreate) check() error {
+	if _, ok := tic.mutation.EntID(); !ok {
+		return &ValidationError{Name: "ent_id", err: errors.New(`ent: missing required field "TokenInfo.ent_id"`)}
+	}
 	if _, ok := tic.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "TokenInfo.created_at"`)}
 	}
@@ -334,12 +342,9 @@ func (tic *TokenInfoCreate) sqlSave(ctx context.Context) (*TokenInfo, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
-			_node.ID = *id
-		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
-			return nil, err
-		}
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = uint32(id)
 	}
 	return _node, nil
 }
@@ -350,7 +355,7 @@ func (tic *TokenInfoCreate) createSpec() (*TokenInfo, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: tokeninfo.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
+				Type:   field.TypeUint32,
 				Column: tokeninfo.FieldID,
 			},
 		}
@@ -358,7 +363,15 @@ func (tic *TokenInfoCreate) createSpec() (*TokenInfo, *sqlgraph.CreateSpec) {
 	_spec.OnConflict = tic.conflict
 	if id, ok := tic.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = &id
+		_spec.ID.Value = id
+	}
+	if value, ok := tic.mutation.EntID(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: tokeninfo.FieldEntID,
+		})
+		_node.EntID = value
 	}
 	if value, ok := tic.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -463,7 +476,7 @@ func (tic *TokenInfoCreate) createSpec() (*TokenInfo, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.TokenInfo.Create().
-//		SetCreatedAt(v).
+//		SetEntID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -472,10 +485,9 @@ func (tic *TokenInfoCreate) createSpec() (*TokenInfo, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.TokenInfoUpsert) {
-//			SetCreatedAt(v+v).
+//			SetEntID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (tic *TokenInfoCreate) OnConflict(opts ...sql.ConflictOption) *TokenInfoUpsertOne {
 	tic.conflict = opts
 	return &TokenInfoUpsertOne{
@@ -489,7 +501,6 @@ func (tic *TokenInfoCreate) OnConflict(opts ...sql.ConflictOption) *TokenInfoUps
 //	client.TokenInfo.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (tic *TokenInfoCreate) OnConflictColumns(columns ...string) *TokenInfoUpsertOne {
 	tic.conflict = append(tic.conflict, sql.ConflictColumns(columns...))
 	return &TokenInfoUpsertOne{
@@ -509,6 +520,18 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetEntID sets the "ent_id" field.
+func (u *TokenInfoUpsert) SetEntID(v uuid.UUID) *TokenInfoUpsert {
+	u.Set(tokeninfo.FieldEntID, v)
+	return u
+}
+
+// UpdateEntID sets the "ent_id" field to the value that was provided on create.
+func (u *TokenInfoUpsert) UpdateEntID() *TokenInfoUpsert {
+	u.SetExcluded(tokeninfo.FieldEntID)
+	return u
+}
 
 // SetCreatedAt sets the "created_at" field.
 func (u *TokenInfoUpsert) SetCreatedAt(v uint32) *TokenInfoUpsert {
@@ -719,7 +742,6 @@ func (u *TokenInfoUpsert) ClearData() *TokenInfoUpsert {
 //			}),
 //		).
 //		Exec(ctx)
-//
 func (u *TokenInfoUpsertOne) UpdateNewValues() *TokenInfoUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -733,10 +755,9 @@ func (u *TokenInfoUpsertOne) UpdateNewValues() *TokenInfoUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//  client.TokenInfo.Create().
-//      OnConflict(sql.ResolveWithIgnore()).
-//      Exec(ctx)
-//
+//	client.TokenInfo.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
 func (u *TokenInfoUpsertOne) Ignore() *TokenInfoUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -756,6 +777,20 @@ func (u *TokenInfoUpsertOne) Update(set func(*TokenInfoUpsert)) *TokenInfoUpsert
 		set(&TokenInfoUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetEntID sets the "ent_id" field.
+func (u *TokenInfoUpsertOne) SetEntID(v uuid.UUID) *TokenInfoUpsertOne {
+	return u.Update(func(s *TokenInfoUpsert) {
+		s.SetEntID(v)
+	})
+}
+
+// UpdateEntID sets the "ent_id" field to the value that was provided on create.
+func (u *TokenInfoUpsertOne) UpdateEntID() *TokenInfoUpsertOne {
+	return u.Update(func(s *TokenInfoUpsert) {
+		s.UpdateEntID()
+	})
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1005,12 +1040,7 @@ func (u *TokenInfoUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *TokenInfoUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
-	if u.create.driver.Dialect() == dialect.MySQL {
-		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
-		// fields from the database since MySQL does not support the RETURNING clause.
-		return id, errors.New("ent: TokenInfoUpsertOne.ID is not supported by MySQL driver. Use TokenInfoUpsertOne.Exec instead")
-	}
+func (u *TokenInfoUpsertOne) ID(ctx context.Context) (id uint32, err error) {
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -1019,7 +1049,7 @@ func (u *TokenInfoUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *TokenInfoUpsertOne) IDX(ctx context.Context) uuid.UUID {
+func (u *TokenInfoUpsertOne) IDX(ctx context.Context) uint32 {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -1070,6 +1100,10 @@ func (ticb *TokenInfoCreateBulk) Save(ctx context.Context) ([]*TokenInfo, error)
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+					id := specs[i].ID.Value.(int64)
+					nodes[i].ID = uint32(id)
+				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -1121,10 +1155,9 @@ func (ticb *TokenInfoCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.TokenInfoUpsert) {
-//			SetCreatedAt(v+v).
+//			SetEntID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (ticb *TokenInfoCreateBulk) OnConflict(opts ...sql.ConflictOption) *TokenInfoUpsertBulk {
 	ticb.conflict = opts
 	return &TokenInfoUpsertBulk{
@@ -1138,7 +1171,6 @@ func (ticb *TokenInfoCreateBulk) OnConflict(opts ...sql.ConflictOption) *TokenIn
 //	client.TokenInfo.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (ticb *TokenInfoCreateBulk) OnConflictColumns(columns ...string) *TokenInfoUpsertBulk {
 	ticb.conflict = append(ticb.conflict, sql.ConflictColumns(columns...))
 	return &TokenInfoUpsertBulk{
@@ -1163,7 +1195,6 @@ type TokenInfoUpsertBulk struct {
 //			}),
 //		).
 //		Exec(ctx)
-//
 func (u *TokenInfoUpsertBulk) UpdateNewValues() *TokenInfoUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -1183,7 +1214,6 @@ func (u *TokenInfoUpsertBulk) UpdateNewValues() *TokenInfoUpsertBulk {
 //	client.TokenInfo.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
-//
 func (u *TokenInfoUpsertBulk) Ignore() *TokenInfoUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -1203,6 +1233,20 @@ func (u *TokenInfoUpsertBulk) Update(set func(*TokenInfoUpsert)) *TokenInfoUpser
 		set(&TokenInfoUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetEntID sets the "ent_id" field.
+func (u *TokenInfoUpsertBulk) SetEntID(v uuid.UUID) *TokenInfoUpsertBulk {
+	return u.Update(func(s *TokenInfoUpsert) {
+		s.SetEntID(v)
+	})
+}
+
+// UpdateEntID sets the "ent_id" field to the value that was provided on create.
+func (u *TokenInfoUpsertBulk) UpdateEntID() *TokenInfoUpsertBulk {
+	return u.Update(func(s *TokenInfoUpsert) {
+		s.UpdateEntID()
+	})
 }
 
 // SetCreatedAt sets the "created_at" field.

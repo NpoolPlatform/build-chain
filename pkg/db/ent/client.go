@@ -9,7 +9,6 @@ import (
 	"log"
 
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/migrate"
-	"github.com/google/uuid"
 
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 
@@ -101,7 +100,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 //		TokenInfo.
 //		Query().
 //		Count(ctx)
-//
 func (c *Client) Debug() *Client {
 	if c.debug {
 		return c
@@ -164,7 +162,7 @@ func (c *TokenInfoClient) UpdateOne(ti *TokenInfo) *TokenInfoUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *TokenInfoClient) UpdateOneID(id uuid.UUID) *TokenInfoUpdateOne {
+func (c *TokenInfoClient) UpdateOneID(id uint32) *TokenInfoUpdateOne {
 	mutation := newTokenInfoMutation(c.config, OpUpdateOne, withTokenInfoID(id))
 	return &TokenInfoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -181,7 +179,7 @@ func (c *TokenInfoClient) DeleteOne(ti *TokenInfo) *TokenInfoDeleteOne {
 }
 
 // DeleteOne returns a builder for deleting the given entity by its id.
-func (c *TokenInfoClient) DeleteOneID(id uuid.UUID) *TokenInfoDeleteOne {
+func (c *TokenInfoClient) DeleteOneID(id uint32) *TokenInfoDeleteOne {
 	builder := c.Delete().Where(tokeninfo.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -196,12 +194,12 @@ func (c *TokenInfoClient) Query() *TokenInfoQuery {
 }
 
 // Get returns a TokenInfo entity by its id.
-func (c *TokenInfoClient) Get(ctx context.Context, id uuid.UUID) (*TokenInfo, error) {
+func (c *TokenInfoClient) Get(ctx context.Context, id uint32) (*TokenInfo, error) {
 	return c.Query().Where(tokeninfo.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *TokenInfoClient) GetX(ctx context.Context, id uuid.UUID) *TokenInfo {
+func (c *TokenInfoClient) GetX(ctx context.Context, id uint32) *TokenInfo {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

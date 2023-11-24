@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/predicate"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
+	"github.com/google/uuid"
 )
 
 // TokenInfoUpdate is the builder for updating TokenInfo entities.
@@ -25,6 +26,20 @@ type TokenInfoUpdate struct {
 // Where appends a list predicates to the TokenInfoUpdate builder.
 func (tiu *TokenInfoUpdate) Where(ps ...predicate.TokenInfo) *TokenInfoUpdate {
 	tiu.mutation.Where(ps...)
+	return tiu
+}
+
+// SetEntID sets the "ent_id" field.
+func (tiu *TokenInfoUpdate) SetEntID(u uuid.UUID) *TokenInfoUpdate {
+	tiu.mutation.SetEntID(u)
+	return tiu
+}
+
+// SetNillableEntID sets the "ent_id" field if the given value is not nil.
+func (tiu *TokenInfoUpdate) SetNillableEntID(u *uuid.UUID) *TokenInfoUpdate {
+	if u != nil {
+		tiu.SetEntID(*u)
+	}
 	return tiu
 }
 
@@ -299,7 +314,7 @@ func (tiu *TokenInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Table:   tokeninfo.Table,
 			Columns: tokeninfo.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
+				Type:   field.TypeUint32,
 				Column: tokeninfo.FieldID,
 			},
 		},
@@ -310,6 +325,13 @@ func (tiu *TokenInfoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := tiu.mutation.EntID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: tokeninfo.FieldEntID,
+		})
 	}
 	if value, ok := tiu.mutation.CreatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
@@ -471,6 +493,20 @@ type TokenInfoUpdateOne struct {
 	hooks     []Hook
 	mutation  *TokenInfoMutation
 	modifiers []func(*sql.UpdateBuilder)
+}
+
+// SetEntID sets the "ent_id" field.
+func (tiuo *TokenInfoUpdateOne) SetEntID(u uuid.UUID) *TokenInfoUpdateOne {
+	tiuo.mutation.SetEntID(u)
+	return tiuo
+}
+
+// SetNillableEntID sets the "ent_id" field if the given value is not nil.
+func (tiuo *TokenInfoUpdateOne) SetNillableEntID(u *uuid.UUID) *TokenInfoUpdateOne {
+	if u != nil {
+		tiuo.SetEntID(*u)
+	}
+	return tiuo
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -757,7 +793,7 @@ func (tiuo *TokenInfoUpdateOne) sqlSave(ctx context.Context) (_node *TokenInfo, 
 			Table:   tokeninfo.Table,
 			Columns: tokeninfo.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
+				Type:   field.TypeUint32,
 				Column: tokeninfo.FieldID,
 			},
 		},
@@ -785,6 +821,13 @@ func (tiuo *TokenInfoUpdateOne) sqlSave(ctx context.Context) (_node *TokenInfo, 
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := tiuo.mutation.EntID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  value,
+			Column: tokeninfo.FieldEntID,
+		})
 	}
 	if value, ok := tiuo.mutation.CreatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{

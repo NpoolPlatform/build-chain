@@ -72,7 +72,7 @@ func (tid *TokenInfoDelete) sqlExec(ctx context.Context) (int, error) {
 		Node: &sqlgraph.NodeSpec{
 			Table: tokeninfo.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
+				Type:   field.TypeUint32,
 				Column: tokeninfo.FieldID,
 			},
 		},
