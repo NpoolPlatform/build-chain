@@ -14,7 +14,7 @@ import (
 
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth/erc20"
-	npool "github.com/NpoolPlatform/message/npool/build-chain"
+	npool "github.com/NpoolPlatform/message/npool/build-chain/v1"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -29,7 +29,7 @@ var (
 	serialLock          sync.Mutex
 )
 
-func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
+func DeployToken(ctx context.Context, in *npool.TokenInfoReq) (string, error) {
 	client, err := Client()
 	if err != nil {
 		return "", err
@@ -78,7 +78,7 @@ func hasContractCode(ctx context.Context, client *rpc.Client, contract common.Ad
 	return true, nil
 }
 
-func DeployBaseErc20(ctx context.Context, client *rpc.Client, in *npool.TokenInfo) (common.Address, error) {
+func DeployBaseErc20(ctx context.Context, client *rpc.Client, in *npool.TokenInfoReq) (common.Address, error) {
 	contract := &coins.Contract{}
 	contractAddr := common.Address{}
 	err := json.Unmarshal(in.Data, contract)

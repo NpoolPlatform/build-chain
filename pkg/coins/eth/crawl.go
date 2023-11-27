@@ -259,7 +259,7 @@ func CrawlOne(ctx context.Context, bcConn *bc_client.BuildChainClientConn, addr 
 		retry = false
 		resp2, err = bcConn.CreateTokenInfo(ctx, &proto.CreateTokenInfoRequest{
 			Force: force,
-			Info:  token,
+			Info:  &proto.TokenInfoReq{},
 		})
 		if err != nil &&
 			strings.Contains(err.Error(), "replacement transaction underpriced") &&
