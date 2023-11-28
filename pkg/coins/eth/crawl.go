@@ -1,26 +1,23 @@
 package eth
 
 import (
+	"bufio"
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
-	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
-	basetypes "github.com/NpoolPlatform/message/npool/basetypes/v1"
 	proto "github.com/NpoolPlatform/message/npool/build-chain/v1"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/gocolly/colly"
+	"github.com/gocolly/colly/v2"
+	"github.com/gocolly/colly/v2/extensions"
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
@@ -30,10 +27,8 @@ type erc20row struct {
 }
 
 type CrawlTaskInfo struct {
-	Host      string
 	Offset    int
 	Limit     int
-	Force     bool
 	Contract  string
 	ChainType string
 	TokenType string
@@ -48,9 +43,10 @@ func CrawlERC20Rows(offset, limit int) ([]string, error) {
 	var err error
 	erc20rows := []erc20row{}
 	c := colly.NewCollector()
+	extensions.RandomUserAgent(c)
 
-	c.OnHTML("div#ContentPlaceHolder1_divresult table tbody tr", func(e *colly.HTMLElement) {
-		_url := e.ChildAttr("div.media-body a", "href")
+	c.OnHTML("div#ContentPlaceHolder1_tblErc20Tokens table tbody tr", func(e *colly.HTMLElement) {
+		_url := e.ChildAttr("td a", "href")
 		_items := strings.Split(_url, "/")
 		contract := _items[len(_items)-1]
 		if !common.IsHexAddress(contract) {
@@ -99,6 +95,7 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 	var contract *coins.Contract
 	// Instantiate default collector
 	c := colly.NewCollector()
+	extensions.RandomUserAgent(c)
 
 	// get contract detail
 	c.OnResponse(func(r *colly.Response) {
@@ -113,20 +110,21 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 		}
 		e := colly.NewHTMLElementFromSelectionNode(r, doc.Selection, doc.Nodes[0], 0)
 
-		// match tokenName
-		tokenName := e.ChildText("div.media-body span.text-secondary")
+		// remove redundant child node,then match tokenName
+		e.DOM.Find("#content section.container-xxl span.fs-base.fw-medium span").Remove()
+		tokenName := e.ChildText("#content section.container-xxl span.fs-base.fw-medium")
 		if tokenName == "" {
 			return
 		}
 
 		// match contract
-		mainContractAddr := e.ChildText("div.clipboard-hover span.d-none")
+		mainContractAddr := e.ChildAttr("#ContentPlaceHolder1_divSummary a.js-clipboard.link-secondary", "data-clipboard-text")
 		if mainContractAddr == "" {
 			return
 		}
 
 		// match decimal
-		contractDecimal := e.ChildText("#ContentPlaceHolder1_trDecimals div.col-md-8")
+		contractDecimal := e.ChildText("#ContentPlaceHolder1_divSummary h4 b")
 		if contractDecimal == "" {
 			return
 		}
@@ -193,23 +191,11 @@ func CrawlContractInfo(contractAddr string) (*proto.TokenInfo, error) {
 }
 
 func Crawl(info *CrawlTaskInfo) {
-	bcConn, err := bc_client.NewClientConn(context.Background(), info.Host)
-	if err != nil {
-		fmt.Printf("failed: connect server failed, %v\n", err)
-		return
-	}
-	ctx := context.Background()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	addresses, _ := CrawlERC20Rows(info.Offset, info.Limit)
 	if info.Contract != "" {
 		addresses = append(addresses, info.Contract)
 	}
 
-	fmt.Println("start deploy contract,please wait for end !")
-	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>")
 	successData := []*proto.TokenInfo{}
 	var wg sync.WaitGroup
 	var lock sync.Mutex
@@ -217,74 +203,61 @@ func Crawl(info *CrawlTaskInfo) {
 		wg.Add(1)
 		go func(addr string) {
 			defer wg.Done()
-			info, err := CrawlOne(ctx, bcConn, addr, info.Force)
+			info, err := CrawlContractInfo(addr)
 			if err == nil {
-				fmt.Printf("success create token name: %v, official contract :%v\n", info.Name, info.OfficialContract)
+				fmt.Printf("success get token name: %v, official contract :%v\n", info.Name, info.OfficialContract)
 				lock.Lock()
 				successData = append(successData, info)
 				lock.Unlock()
 				return
 			}
-			fmt.Println(err)
+			fmt.Printf("failed to get token info, official contract :%v, err :%v\n", v, err)
 		}(v)
 		// prevent to be baned
 		time.Sleep(CrawlInterval)
 	}
 	wg.Wait()
-	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>")
-	fmt.Println("success deploy table:")
+	fmt.Println("success crawl table:")
 	printTable(successData)
-	fmt.Printf("deploy end,found %v,success %v\n", len(addresses), len(successData))
+	err := printToCSV(successData, "./a.csv")
+	if err != nil {
+		fmt.Printf("failed to write token info to file, err :%v\n", err)
+	}
+	fmt.Printf("crawl end,found %v,success %v\n", len(addresses), len(successData))
 }
 
-func CrawlOne(ctx context.Context, bcConn *bc_client.BuildChainClientConn, addr string, force bool) (token *proto.TokenInfo, err error) {
-	if !force {
-		conds := &proto.Conds{
-			OfficialContract: &basetypes.StringVal{Op: cruder.EQ, Value: addr},
-		}
-		resp, err := bcConn.GetTokenInfos(context.Background(), &proto.GetTokenInfosRequest{Conds: conds})
-		if err == nil && len(resp.Infos) != 0 {
-			return resp.Infos[0], nil
-		}
-	}
-
-	token, err = CrawlContractInfo(addr)
+func printToCSV(infos []*proto.TokenInfo, filepath string) error {
+	file, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
-		return nil, fmt.Errorf("failed crawl address %v, %v", addr, err)
+		return err
 	}
 
-	retry := true
-	var resp2 *proto.CreateTokenInfoResponse
-	for i := 0; i < 3 && retry; i++ {
-		retry = false
-		resp2, err = bcConn.CreateTokenInfo(ctx, &proto.CreateTokenInfoRequest{
-			Force: force,
-			Info: &proto.TokenInfoReq{
-				Name:             &token.Name,
-				Unit:             &token.Unit,
-				Decimal:          &token.Decimal,
-				ChainType:        &token.ChainType,
-				TokenType:        &token.TokenType,
-				OfficialContract: &token.OfficialContract,
-				PrivateContract:  &token.PrivateContract,
-				Remark:           &token.Remark,
-				Data:             token.Data,
-			},
-		})
-		if err != nil &&
-			strings.Contains(err.Error(), "replacement transaction underpriced") &&
-			strings.Contains(err.Error(), " max fee per gas less than block base fee") {
-			i--
-			retry = true
+	defer file.Close()
+
+	buf := bufio.NewWriter(file)
+	_, err = buf.WriteString("Name,Unit,Decimal,ChainType,TokenType,OfficialContract,PrivateContract,Remark,Data\n")
+	if err != nil {
+		return err
+	}
+	for _, v := range infos {
+		_, err = buf.WriteString(
+			fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
+				v.Name,
+				v.Unit,
+				v.Decimal,
+				v.ChainType,
+				v.TokenType,
+				v.OfficialContract,
+				v.PrivateContract,
+				v.Remark,
+				v.Data,
+			),
+		)
+		if err != nil {
+			return err
 		}
 	}
-
-	if err != nil {
-		return nil, fmt.Errorf("failed create token %v, %v", token.Name, err)
-	}
-	token.PrivateContract = resp2.Info.PrivateContract
-	token.Remark = resp2.Msg
-	return token, nil
+	return buf.Flush()
 }
 
 func printTable(infos []*proto.TokenInfo) {

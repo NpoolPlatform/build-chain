@@ -22,10 +22,8 @@ func TestAll(t *testing.T) {
 
 	host := "127.0.0.1:50491"
 	eth.Crawl(&eth.CrawlTaskInfo{
-		Host:      host,
 		Offset:    1,
 		Limit:     100,
-		Force:     true,
 		ChainType: "ethereum",
 		TokenType: "erc20",
 	})

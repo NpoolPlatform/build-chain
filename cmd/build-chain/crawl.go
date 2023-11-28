@@ -31,22 +31,6 @@ var crawlCmd = &cli.Command{
 	},
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:        "host",
-			Aliases:     []string{"ho"},
-			Usage:       "required, host to build-chain server",
-			Required:    true,
-			Value:       "",
-			Destination: &crawlTaskInfo.Host,
-		},
-		&cli.BoolFlag{
-			Name:        "force",
-			Aliases:     []string{"f"},
-			Usage:       "optional, force to redeploy contract",
-			Required:    false,
-			Value:       false,
-			Destination: &crawlTaskInfo.Force,
-		},
-		&cli.StringFlag{
 			Name:        "contract",
 			Aliases:     []string{"co"},
 			Usage:       "optional , appoint the official contract which deployed to build-chain server",
