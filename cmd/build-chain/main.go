@@ -26,7 +26,7 @@ var (
 )
 
 func main() {
-	commands := cli.Commands{runCmd, crawlCmd, genCmd}
+	commands := cli.Commands{runCmd, crawlCmd, genCmd, deployCmd}
 
 	description := fmt.Sprintf(
 		"%v service cli\nFor help on any individual command run <%v COMMAND -h>\n",

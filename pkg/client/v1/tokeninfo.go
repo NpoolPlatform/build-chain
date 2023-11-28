@@ -14,6 +14,7 @@ import (
 type BuildChainClientConn struct {
 	Host string
 	npool.BuildChainClient
+	*grpc.ClientConn
 }
 
 func NewClientConn(_ctx context.Context, host string) (*BuildChainClientConn, error) {
@@ -35,5 +36,6 @@ func NewClientConn(_ctx context.Context, host string) (*BuildChainClientConn, er
 	return &BuildChainClientConn{
 		Host:             host,
 		BuildChainClient: cli,
+		ClientConn:       conn,
 	}, nil
 }
