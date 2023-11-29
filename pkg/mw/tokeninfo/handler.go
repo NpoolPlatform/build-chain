@@ -113,63 +113,63 @@ func WithDecimal(decimal *string, must bool) func(context.Context, *Handler) err
 		return nil
 	}
 }
-func WithChainType(chain_type *string, must bool) func(context.Context, *Handler) error {
+func WithChainType(chainType *string, must bool) func(context.Context, *Handler) error {
 	return func(ctx context.Context, h *Handler) error {
-		if chain_type == nil {
+		if chainType == nil {
 			if must {
 				return fmt.Errorf("invalid chain_type")
 			}
 			return nil
 		}
-		if *chain_type == "" && must {
+		if *chainType == "" && must {
 			return fmt.Errorf("invalid chain_type")
 		}
-		h.ChainType = chain_type
+		h.ChainType = chainType
 		return nil
 	}
 }
-func WithTokenType(token_type *string, must bool) func(context.Context, *Handler) error {
+func WithTokenType(tokenType *string, must bool) func(context.Context, *Handler) error {
 	return func(ctx context.Context, h *Handler) error {
-		if token_type == nil {
+		if tokenType == nil {
 			if must {
 				return fmt.Errorf("invalid token_type")
 			}
 			return nil
 		}
-		if *token_type == "" && must {
+		if *tokenType == "" && must {
 			return fmt.Errorf("invalid token_type")
 		}
-		h.TokenType = token_type
+		h.TokenType = tokenType
 		return nil
 	}
 }
-func WithOfficialContract(official_contract *string, must bool) func(context.Context, *Handler) error {
+func WithOfficialContract(officialContract *string, must bool) func(context.Context, *Handler) error {
 	return func(ctx context.Context, h *Handler) error {
-		if official_contract == nil {
+		if officialContract == nil {
 			if must {
 				return fmt.Errorf("invalid official_contract")
 			}
 			return nil
 		}
-		if *official_contract == "" && must {
+		if *officialContract == "" && must {
 			return fmt.Errorf("invalid official_contract")
 		}
-		h.OfficialContract = official_contract
+		h.OfficialContract = officialContract
 		return nil
 	}
 }
-func WithPrivateContract(private_contract *string, must bool) func(context.Context, *Handler) error {
+func WithPrivateContract(privateContract *string, must bool) func(context.Context, *Handler) error {
 	return func(ctx context.Context, h *Handler) error {
-		if private_contract == nil {
+		if privateContract == nil {
 			if must {
 				return fmt.Errorf("invalid private_contract")
 			}
 			return nil
 		}
-		if *private_contract == "" && must {
+		if *privateContract == "" && must {
 			return fmt.Errorf("invalid private_contract")
 		}
-		h.PrivateContract = private_contract
+		h.PrivateContract = privateContract
 		return nil
 	}
 }
@@ -204,6 +204,7 @@ func WithData(data []byte, must bool) func(context.Context, *Handler) error {
 	}
 }
 
+//nolint:gocyclo
 func WithConds(conds *npool.Conds) func(context.Context, *Handler) error {
 	return func(ctx context.Context, h *Handler) error {
 		h.Conds = &tokeninfo_crud.Conds{}

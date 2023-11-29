@@ -70,6 +70,14 @@ var crawlCmd = &cli.Command{
 			Value:       -1,
 			Destination: &crawlTaskInfo.Limit,
 		},
+		&cli.StringFlag{
+			Name:        "csvFile",
+			Aliases:     []string{"csv"},
+			Usage:       "optional, output file path",
+			Required:    false,
+			Value:       "./tokens.csv",
+			Destination: &crawlTaskInfo.CSVPath,
+		},
 	},
 	Action: func(c *cli.Context) error {
 		eth.Crawl(crawlTaskInfo)

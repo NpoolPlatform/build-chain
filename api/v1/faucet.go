@@ -17,6 +17,7 @@ import (
 
 func (s *Server) Faucet(ctx context.Context, in *npool.FaucetRequst) (*npool.FaucetResponse, error) {
 	ret := &npool.FaucetResponse{}
+	var limit int32 = 1
 	h, err := handler.NewHandler(ctx,
 		handler.WithConds(
 			&npool.Conds{
@@ -25,14 +26,25 @@ func (s *Server) Faucet(ctx context.Context, in *npool.FaucetRequst) (*npool.Fau
 					Value: in.OfficialContract,
 				},
 			}),
+		handler.WithOffset(0),
+		handler.WithLimit(limit),
 	)
-
-	info, err := h.GetTokenInfo(ctx)
 	if err != nil {
 		logger.Sugar().Errorf("faucet failed, %v", err)
 		return ret, status.Error(codes.InvalidArgument, fmt.Sprintf("failed to query tokeninfo,%v", err))
 	}
 
+	infos, total, err := h.GetTokenInfos(ctx)
+	if err != nil {
+		logger.Sugar().Errorf("faucet failed, %v", err)
+		return ret, status.Error(codes.InvalidArgument, fmt.Sprintf("failed to query tokeninfo,%v", err))
+	}
+
+	if total == 0 {
+		logger.Sugar().Errorf("faucet failed, not found token info")
+		return ret, status.Error(codes.InvalidArgument, "faucet failed, not found token info")
+	}
+	info := infos[0]
 	var txHash string
 	switch info.TokenType {
 	case coins.ERC20TOKEN:

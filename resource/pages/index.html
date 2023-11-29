@@ -33,11 +33,11 @@
             </div>
             <div class="item">
                 <span class="item_key">To</span>
-                <input class="item_input" type="text" v-model="to">
+                <input class="item_input" type="text" v-model="To">
             </div>
             <div class="item">
                 <span class="item_key">Amount</span>
-                <input class="item_input" type="text" v-model="amount">
+                <input class="item_input" type="text" v-model="Amount">
             </div>
             <div class="item">
                 <span class="item_key"></span>
@@ -61,15 +61,18 @@
     const GetCoinsInfoAPI = {
         url: "/v1/get/tokeninfos",
         method: "POST",
-        args: null,
+        args: {
+            "Offset":0,
+            "Limit":2,
+        },
     }
     const FaucetAPI = {
         url: "/v1/faucet",
         method: "POST",
         args: {
-            to: "",
-            amount: "",
-            id: "",
+            To: "",
+            Amount: "",
+            OfficialContract: "",
         },
     }
 
@@ -88,7 +91,7 @@
             }
         },
         mounted() {
-            axios.post(GetCoinsInfoAPI.url, "")
+            axios.post(GetCoinsInfoAPI.url, GetCoinsInfoAPI.args)
                 .then(res => {
                     this.coinsInfo = res.data.Infos
                 })
@@ -101,7 +104,7 @@
                 if (this.txLog.length > 10) {
                     this.txLog.splice(10,5)
                 }
-                axios.post(FaucetAPI.url, {To:this.to,Amount:this.amount,OfficialContract:this.selectedCoin.OfficialContract})
+                axios.post(FaucetAPI.url, {To:this.To,Amount:this.Amount,OfficialContract:this.selectedCoin.OfficialContract})
                 .then(res => {
                     this.txLog.unshift({msg:res.data.Msg,to:this.to,color:"#6699ff"})
                 })

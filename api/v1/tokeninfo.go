@@ -79,6 +79,8 @@ func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoR
 func (s *Server) GetTokenInfos(ctx context.Context, in *npool.GetTokenInfosRequest) (*npool.GetTokenInfosResponse, error) {
 	h, err := handler.NewHandler(ctx,
 		handler.WithConds(in.Conds),
+		handler.WithOffset(in.Offset),
+		handler.WithLimit(in.Limit),
 	)
 	if err != nil {
 		logger.Sugar().Errorf("get tokeninfos failed, %v", err)
@@ -92,6 +94,6 @@ func (s *Server) GetTokenInfos(ctx context.Context, in *npool.GetTokenInfosReque
 	}
 
 	logger.Sugar().Infof("get tokeninfos success,total %v", total)
-	ret := &npool.GetTokenInfosResponse{Total: uint32(total), Infos: infos}
+	ret := &npool.GetTokenInfosResponse{Total: total, Infos: infos}
 	return ret, nil
 }

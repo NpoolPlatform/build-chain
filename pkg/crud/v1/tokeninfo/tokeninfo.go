@@ -80,6 +80,7 @@ type Conds struct {
 	Data             *cruder.Cond
 }
 
+//nolint:funlen
 func SetQueryConds(q *ent.TokenInfoQuery, conds *Conds) (*ent.TokenInfoQuery, error) {
 	if conds.ID != nil {
 		id, ok := conds.ID.Val.(uint32)
@@ -94,25 +95,25 @@ func SetQueryConds(q *ent.TokenInfoQuery, conds *Conds) (*ent.TokenInfoQuery, er
 		}
 	}
 	if conds.EntID != nil {
-		ent_id, ok := conds.EntID.Val.(uuid.UUID)
+		entID, ok := conds.EntID.Val.(uuid.UUID)
 		if !ok {
 			return nil, fmt.Errorf("invalid ent_id")
 		}
 		switch conds.EntID.Op {
 		case cruder.EQ:
-			q.Where(enttokeninfo.EntID(ent_id))
+			q.Where(enttokeninfo.EntID(entID))
 		default:
 			return nil, fmt.Errorf("invalid ent_id field")
 		}
 	}
 	if conds.ChainType != nil {
-		chain_type, ok := conds.ChainType.Val.(string)
+		chainType, ok := conds.ChainType.Val.(string)
 		if !ok {
 			return nil, fmt.Errorf("invalid chain_type")
 		}
 		switch conds.ChainType.Op {
 		case cruder.EQ:
-			q.Where(enttokeninfo.ChainType(chain_type))
+			q.Where(enttokeninfo.ChainType(chainType))
 		default:
 			return nil, fmt.Errorf("invalid chain_type field")
 		}
@@ -154,37 +155,37 @@ func SetQueryConds(q *ent.TokenInfoQuery, conds *Conds) (*ent.TokenInfoQuery, er
 		}
 	}
 	if conds.TokenType != nil {
-		token_type, ok := conds.TokenType.Val.(string)
+		tokenType, ok := conds.TokenType.Val.(string)
 		if !ok {
 			return nil, fmt.Errorf("invalid token_type")
 		}
 		switch conds.TokenType.Op {
 		case cruder.EQ:
-			q.Where(enttokeninfo.TokenType(token_type))
+			q.Where(enttokeninfo.TokenType(tokenType))
 		default:
 			return nil, fmt.Errorf("invalid token_type field")
 		}
 	}
 	if conds.OfficialContract != nil {
-		official_contract, ok := conds.OfficialContract.Val.(string)
+		officialContract, ok := conds.OfficialContract.Val.(string)
 		if !ok {
 			return nil, fmt.Errorf("invalid official_contract")
 		}
 		switch conds.OfficialContract.Op {
 		case cruder.EQ:
-			q.Where(enttokeninfo.OfficialContract(official_contract))
+			q.Where(enttokeninfo.OfficialContract(officialContract))
 		default:
 			return nil, fmt.Errorf("invalid official_contract field")
 		}
 	}
 	if conds.PrivateContract != nil {
-		private_contract, ok := conds.PrivateContract.Val.(string)
+		privateContract, ok := conds.PrivateContract.Val.(string)
 		if !ok {
 			return nil, fmt.Errorf("invalid private_contract")
 		}
 		switch conds.PrivateContract.Op {
 		case cruder.EQ:
-			q.Where(enttokeninfo.PrivateContract(private_contract))
+			q.Where(enttokeninfo.PrivateContract(privateContract))
 		default:
 			return nil, fmt.Errorf("invalid private_contract field")
 		}

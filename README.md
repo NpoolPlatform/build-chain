@@ -14,6 +14,7 @@
   - [使用说明](#使用说明)
     - [docker部署](#docker部署)
     - [依赖coinbase部署方式](#依赖coinbase部署方式)
+    - [扒取合约信息](#扒取合约信息)
     - [部署合约](#部署合约)
     - [sphinx-plugin支持](#sphinx-plugin支持)
   - [补充](#补充)
@@ -98,8 +99,8 @@ docker run --name buildchain  -p 50491:50491 -p 50490:50490 -e ENV_ETH_ENDPOINT=
 ./build-chain run --ee http://EthereumWalletIP:Port
 ```
 
-### 部署合约
-使用cli工具连接server端，使用crawl爬取ethscan.io上的合约数据，部署到测试链
+### 扒取合约信息
+使用crawl爬取ethscan.io上的合约数据，在真正使用时请用deploy/erc20.csv下的合约信息
 
 ```Shell
 # 必要时需要设置代理
@@ -112,6 +113,17 @@ docker run --name buildchain  -p 50491:50491 -p 50490:50490 -e ENV_ETH_ENDPOINT=
 ./build-chain crawl --host ServerIP:50491 -o 1 -l 100
 # 2.指定公网contract进行部署
 ./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
+```
+
+### 部署合约
+启动一个build-chain服务
+
+使用事先准备好的合约信息（一般在deploy下）部署token
+
+例如：
+
+```Shell
+build-chain deploy --file ./deploy/erc20.csv --bc-server ServerIP:50491
 ```
 
 部署成功的合约可访问server端的web界面申请空投
@@ -140,20 +152,12 @@ geth attach ~/eth_node0/geth.ipc
 
 1. 启动build-chain server端
 
+例如：
+
+run --eth-endpoint 'http://172.16.3.90:8545' --ik e86bead113c6500b7c9ef662ea6029ed71dcbe6a7e36e5c09945cdc3e616f788
+
 2. 打开server的web页面（浏览器访问ServerIP:50490）,可查看已有币种信息
 
-3. 使用build-chain cli工具将ethscan.io上的合约部署到测试网
-   
-   + 可指定公网合约地址部署
-       例如：
+3. 使用build-chain cli工具将合约部署到测试网
 
-       ./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
-       ![指定单个合约地址](docs/crawl_one_contract.jpg)
-   
-   + 可指定ethscan批量合约部署
-       例如：
-       
-       ./build-chain crawl --host ServerIP:50491 -o 1 -l 100
-       
-       ./build-chain crawl --host ServerIP:50491 -o 52 -l 7
-       ![指定批量合约](docs/crawl_batch_contract.jpg)
+build-chain deploy --file ./deploy/erc20.csv --bc-server ServerIP:50491

@@ -19,6 +19,7 @@ func TestCrawlContract(t *testing.T) {
 	assert.Nil(t, contractInfo)
 }
 
+//nolint:gomnd
 func TestCrawlRows(t *testing.T) {
 	contracts, err := CrawlERC20Rows(0, 1)
 	assert.NotNil(t, err)

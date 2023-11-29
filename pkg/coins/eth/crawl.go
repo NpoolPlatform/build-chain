@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"strconv"
 	"strings"
@@ -32,6 +33,7 @@ type CrawlTaskInfo struct {
 	Contract  string
 	ChainType string
 	TokenType string
+	CSVPath   string
 }
 
 var CrawlInterval = time.Second * 2
@@ -219,7 +221,7 @@ func Crawl(info *CrawlTaskInfo) {
 	wg.Wait()
 	fmt.Println("success crawl table:")
 	printTable(successData)
-	err := printToCSV(successData, "./a.csv")
+	err := printToCSV(successData, info.CSVPath)
 	if err != nil {
 		fmt.Printf("failed to write token info to file, err :%v\n", err)
 	}
@@ -227,39 +229,14 @@ func Crawl(info *CrawlTaskInfo) {
 }
 
 func printToCSV(infos []*proto.TokenInfo, filepath string) error {
-	file, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR, 0666)
+	var defaultMode fs.FileMode = 0666
+	file, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR, defaultMode)
 	if err != nil {
 		return err
 	}
 
 	defer file.Close()
-
 	return gocsv.MarshalFile(infos, file)
-
-	// buf := bufio.NewWriter(file)
-	// _, err = buf.WriteString("Name,Unit,Decimal,ChainType,TokenType,OfficialContract,PrivateContract,Remark,Data\n")
-	// if err != nil {
-	// 	return err
-	// }
-	// for _, v := range infos {
-	// 	_, err = buf.WriteString(
-	// 		fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
-	// 			v.Name,
-	// 			v.Unit,
-	// 			v.Decimal,
-	// 			v.ChainType,
-	// 			v.TokenType,
-	// 			v.OfficialContract,
-	// 			v.PrivateContract,
-	// 			v.Remark,
-	// 			string(v.Data),
-	// 		),
-	// 	)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
-	// return buf.Flush()
 }
 
 func printTable(infos []*proto.TokenInfo) {
