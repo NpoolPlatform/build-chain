@@ -30,35 +30,39 @@ func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoR
 		handler.WithChainType(in.Info.ChainType, true),
 		handler.WithTokenType(in.Info.TokenType, true),
 		handler.WithOfficialContract(in.Info.OfficialContract, true),
-		handler.WithPrivateContract(in.Info.PrivateContract, false),
 		handler.WithRemark(in.Info.Remark, false),
 		handler.WithData(in.Info.Data, true),
 	)
+	if err != nil {
+		logger.Sugar().Errorf("create tokeninfos failed, %v", err)
+		return &npool.CreateTokenInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
+	}
 
 	_info, _ := h.GetTokenInfo(ctx)
+	name := *in.Info.Name
 	if _info != nil && !in.Force {
-		logger.Sugar().Infof("create tokeninfo,it is exist, %v", in.Info.Name)
+		logger.Sugar().Infof("create tokeninfo,it is exist, %v")
 		return &npool.CreateTokenInfoResponse{Info: _info, Success: true, Msg: "it`s exist"}, nil
 	}
 
 	contract, err := eth.DeployToken(ctx, in.Info)
 	if err != nil {
-		logger.Sugar().Errorf("create tokeninfo failed,%v, contract official name: %v", err, in.Info.Name)
+		logger.Sugar().Errorf("create tokeninfo failed,%v, contract official name: %v", err, name)
 		return &npool.CreateTokenInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
 	}
 
-	in.Info.PrivateContract = &contract
+	h.PrivateContract = &contract
 	if _info != nil {
 		h.ID = &_info.ID
 		info, err = h.UpdateTokenInfo(ctx)
 		if err != nil {
-			logger.Sugar().Errorf("create tokeninfo failed%v, contract official name: %v", err, in.Info.Name)
+			logger.Sugar().Errorf("create tokeninfo failed%v, contract official name: %v", err, name)
 			return &npool.CreateTokenInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
 		}
 	} else {
 		info, err = h.CreateTokenInfo(ctx)
 		if err != nil {
-			logger.Sugar().Errorf("create tokeninfo failed%v, contract official name: %v", err, in.Info.Name)
+			logger.Sugar().Errorf("create tokeninfo failed%v, contract official name: %v", err, name)
 			return &npool.CreateTokenInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
 		}
 	}
@@ -76,6 +80,10 @@ func (s *Server) GetTokenInfos(ctx context.Context, in *npool.GetTokenInfosReque
 	h, err := handler.NewHandler(ctx,
 		handler.WithConds(in.Conds),
 	)
+	if err != nil {
+		logger.Sugar().Errorf("get tokeninfos failed, %v", err)
+		return &npool.GetTokenInfosResponse{}, status.Error(codes.Unavailable, err.Error())
+	}
 
 	infos, total, err := h.GetTokenInfos(ctx)
 	if err != nil {

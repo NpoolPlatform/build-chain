@@ -2,6 +2,7 @@ package coins
 
 import (
 	"context"
+	"strings"
 
 	handler "github.com/NpoolPlatform/build-chain/pkg/mw/tokeninfo"
 )
@@ -24,7 +25,7 @@ func Init() {
 	}
 
 	_, err = h.CreateTokenInfo(context.Background())
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed") {
 		panic(err)
 	}
 }

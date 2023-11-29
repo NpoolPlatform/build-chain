@@ -76,7 +76,7 @@ func WithName(name *string, must bool) func(context.Context, *Handler) error {
 			}
 			return nil
 		}
-		if *name == "" {
+		if *name == "" && must {
 			return fmt.Errorf("invalid name")
 		}
 		h.Name = name
@@ -91,7 +91,7 @@ func WithUnit(unit *string, must bool) func(context.Context, *Handler) error {
 			}
 			return nil
 		}
-		if *unit == "" {
+		if *unit == "" && must {
 			return fmt.Errorf("invalid unit")
 		}
 		h.Unit = unit
@@ -106,7 +106,7 @@ func WithDecimal(decimal *string, must bool) func(context.Context, *Handler) err
 			}
 			return nil
 		}
-		if *decimal == "" {
+		if *decimal == "" && must {
 			return fmt.Errorf("invalid decimal")
 		}
 		h.Decimal = decimal
@@ -121,7 +121,7 @@ func WithChainType(chain_type *string, must bool) func(context.Context, *Handler
 			}
 			return nil
 		}
-		if *chain_type == "" {
+		if *chain_type == "" && must {
 			return fmt.Errorf("invalid chain_type")
 		}
 		h.ChainType = chain_type
@@ -136,7 +136,7 @@ func WithTokenType(token_type *string, must bool) func(context.Context, *Handler
 			}
 			return nil
 		}
-		if *token_type == "" {
+		if *token_type == "" && must {
 			return fmt.Errorf("invalid token_type")
 		}
 		h.TokenType = token_type
@@ -151,7 +151,7 @@ func WithOfficialContract(official_contract *string, must bool) func(context.Con
 			}
 			return nil
 		}
-		if *official_contract == "" {
+		if *official_contract == "" && must {
 			return fmt.Errorf("invalid official_contract")
 		}
 		h.OfficialContract = official_contract
@@ -166,7 +166,7 @@ func WithPrivateContract(private_contract *string, must bool) func(context.Conte
 			}
 			return nil
 		}
-		if *private_contract == "" {
+		if *private_contract == "" && must {
 			return fmt.Errorf("invalid private_contract")
 		}
 		h.PrivateContract = private_contract
@@ -181,7 +181,7 @@ func WithRemark(remark *string, must bool) func(context.Context, *Handler) error
 			}
 			return nil
 		}
-		if *remark == "" {
+		if *remark == "" && must {
 			return fmt.Errorf("invalid remark")
 		}
 		h.Remark = remark
@@ -196,7 +196,7 @@ func WithData(data []byte, must bool) func(context.Context, *Handler) error {
 			}
 			return nil
 		}
-		if len(data) == 0 {
+		if len(data) == 0 && must {
 			return fmt.Errorf("invalid data")
 		}
 		h.Data = data
@@ -227,7 +227,7 @@ func WithConds(conds *npool.Conds) func(context.Context, *Handler) error {
 			if conds.Unit.GetValue() != "" {
 				h.Conds.Unit = &cruder.Cond{
 					Op:  conds.GetUnit().GetOp(),
-					Val: conds.GetUnit().GetValue,
+					Val: conds.GetUnit().GetValue(),
 				}
 			}
 		}
@@ -235,7 +235,7 @@ func WithConds(conds *npool.Conds) func(context.Context, *Handler) error {
 			if conds.Decimal.GetValue() != "" {
 				h.Conds.Decimal = &cruder.Cond{
 					Op:  conds.GetDecimal().GetOp(),
-					Val: conds.GetDecimal().GetValue,
+					Val: conds.GetDecimal().GetValue(),
 				}
 			}
 		}
@@ -243,7 +243,7 @@ func WithConds(conds *npool.Conds) func(context.Context, *Handler) error {
 			if conds.ChainType.GetValue() != "" {
 				h.Conds.ChainType = &cruder.Cond{
 					Op:  conds.GetChainType().GetOp(),
-					Val: conds.GetChainType().GetValue,
+					Val: conds.GetChainType().GetValue(),
 				}
 			}
 		}
@@ -251,7 +251,7 @@ func WithConds(conds *npool.Conds) func(context.Context, *Handler) error {
 			if conds.TokenType.GetValue() != "" {
 				h.Conds.TokenType = &cruder.Cond{
 					Op:  conds.GetTokenType().GetOp(),
-					Val: conds.GetTokenType().GetValue,
+					Val: conds.GetTokenType().GetValue(),
 				}
 			}
 		}
@@ -259,7 +259,7 @@ func WithConds(conds *npool.Conds) func(context.Context, *Handler) error {
 			if conds.OfficialContract.GetValue() != "" {
 				h.Conds.OfficialContract = &cruder.Cond{
 					Op:  conds.GetOfficialContract().GetOp(),
-					Val: conds.GetOfficialContract().GetValue,
+					Val: conds.GetOfficialContract().GetValue(),
 				}
 			}
 		}
@@ -267,7 +267,7 @@ func WithConds(conds *npool.Conds) func(context.Context, *Handler) error {
 			if conds.PrivateContract.GetValue() != "" {
 				h.Conds.PrivateContract = &cruder.Cond{
 					Op:  conds.GetPrivateContract().GetOp(),
-					Val: conds.GetPrivateContract().GetValue,
+					Val: conds.GetPrivateContract().GetValue(),
 				}
 			}
 		}
@@ -275,7 +275,7 @@ func WithConds(conds *npool.Conds) func(context.Context, *Handler) error {
 			if conds.Remark.GetValue() != "" {
 				h.Conds.Remark = &cruder.Cond{
 					Op:  conds.GetRemark().GetOp(),
-					Val: conds.GetRemark().GetValue,
+					Val: conds.GetRemark().GetValue(),
 				}
 			}
 		}
@@ -283,7 +283,7 @@ func WithConds(conds *npool.Conds) func(context.Context, *Handler) error {
 			if conds.Name.GetValue() != "" {
 				h.Conds.Name = &cruder.Cond{
 					Op:  conds.GetName().GetOp(),
-					Val: conds.GetName().GetValue,
+					Val: conds.GetName().GetValue(),
 				}
 			}
 		}
@@ -291,7 +291,7 @@ func WithConds(conds *npool.Conds) func(context.Context, *Handler) error {
 			if len(conds.EntIDs.GetValue()) != 0 {
 				h.Conds.Data = &cruder.Cond{
 					Op:  conds.GetEntIDs().GetOp(),
-					Val: conds.GetEntIDs().GetValue,
+					Val: conds.GetEntIDs().GetValue(),
 				}
 			}
 		}

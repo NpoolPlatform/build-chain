@@ -31,7 +31,7 @@ var deployInfo = &DeployInfo{}
 
 var deployCmd = &cli.Command{
 	Name:    "deploy",
-	Aliases: []string{"r"},
+	Aliases: []string{"d"},
 	Usage:   "deploy smart contract from file",
 	Before: func(ctx *cli.Context) error {
 		err := logger.Init(logger.DebugLevel, "./")
@@ -59,7 +59,7 @@ var deployCmd = &cli.Command{
 		},
 		&cli.StringFlag{
 			Name:        "bc-server",
-			Aliases:     []string{"bc-server"},
+			Aliases:     []string{"bc-s"},
 			Usage:       "must , build-chain server address",
 			Required:    true,
 			Value:       "",
@@ -85,7 +85,7 @@ func Deploy(ctx context.Context, deployInfo *DeployInfo) error {
 	for _, v := range tokens {
 		err = CreateTokenInfo(ctx, bcConn, v, deployInfo.Force)
 		if err != nil {
-			return err
+			logger.Sugar().Error(err)
 		}
 	}
 	return nil
@@ -99,8 +99,9 @@ func ReadTokenInfos(deployInfo *DeployInfo) ([]*proto.TokenInfoReq, error) {
 	defer in.Close()
 
 	tokenInfos := []*proto.TokenInfoReq{}
-
+	fmt.Println(deployInfo.FilePath)
 	if err := gocsv.UnmarshalFile(in, &tokenInfos); err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 
@@ -113,6 +114,7 @@ func CreateTokenInfo(ctx context.Context, bcConn *bc_client.BuildChainClientConn
 			OfficialContract: &basetypes.StringVal{Op: cruder.EQ, Value: *token.OfficialContract},
 		}
 		resp, err := bcConn.GetTokenInfos(context.Background(), &proto.GetTokenInfosRequest{Conds: conds})
+		fmt.Println(err)
 		if err == nil && len(resp.Infos) != 0 {
 			return nil
 		}
@@ -121,7 +123,7 @@ func CreateTokenInfo(ctx context.Context, bcConn *bc_client.BuildChainClientConn
 	retry := true
 	for i := 0; i < 3 && retry; i++ {
 		retry = false
-		_, err := bcConn.CreateTokenInfo(ctx, &proto.CreateTokenInfoRequest{
+		_, err = bcConn.CreateTokenInfo(ctx, &proto.CreateTokenInfoRequest{
 			Force: force,
 			Info:  token,
 		})

@@ -1,7 +1,6 @@
 package eth
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -16,6 +15,7 @@ import (
 	proto "github.com/NpoolPlatform/message/npool/build-chain/v1"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/gocarina/gocsv"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/extensions"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -234,30 +234,32 @@ func printToCSV(infos []*proto.TokenInfo, filepath string) error {
 
 	defer file.Close()
 
-	buf := bufio.NewWriter(file)
-	_, err = buf.WriteString("Name,Unit,Decimal,ChainType,TokenType,OfficialContract,PrivateContract,Remark,Data\n")
-	if err != nil {
-		return err
-	}
-	for _, v := range infos {
-		_, err = buf.WriteString(
-			fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
-				v.Name,
-				v.Unit,
-				v.Decimal,
-				v.ChainType,
-				v.TokenType,
-				v.OfficialContract,
-				v.PrivateContract,
-				v.Remark,
-				v.Data,
-			),
-		)
-		if err != nil {
-			return err
-		}
-	}
-	return buf.Flush()
+	return gocsv.MarshalFile(infos, file)
+
+	// buf := bufio.NewWriter(file)
+	// _, err = buf.WriteString("Name,Unit,Decimal,ChainType,TokenType,OfficialContract,PrivateContract,Remark,Data\n")
+	// if err != nil {
+	// 	return err
+	// }
+	// for _, v := range infos {
+	// 	_, err = buf.WriteString(
+	// 		fmt.Sprintf("%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
+	// 			v.Name,
+	// 			v.Unit,
+	// 			v.Decimal,
+	// 			v.ChainType,
+	// 			v.TokenType,
+	// 			v.OfficialContract,
+	// 			v.PrivateContract,
+	// 			v.Remark,
+	// 			string(v.Data),
+	// 		),
+	// 	)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
+	// return buf.Flush()
 }
 
 func printTable(infos []*proto.TokenInfo) {
