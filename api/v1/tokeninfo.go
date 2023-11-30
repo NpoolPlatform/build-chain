@@ -73,7 +73,7 @@ func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoR
 		}
 	}
 
-	msg := fmt.Sprintf("contract official name: %v", in.Info.Name)
+	msg := fmt.Sprintf("contract official name: %v", *in.Info.Name)
 	logger.Sugar().Infof("create tokeninfo success, %v", msg)
 	return &npool.CreateTokenInfoResponse{
 		Info:    info,
