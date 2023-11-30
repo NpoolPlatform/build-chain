@@ -17,7 +17,11 @@ import (
 func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoRequest) (*npool.CreateTokenInfoResponse, error) {
 	var err error
 	var info *npool.TokenInfo
-
+	if in == nil || in.Info == nil {
+		errMsg := "create tokeninfos failed, please give the input"
+		logger.Sugar().Errorf(errMsg)
+		return &npool.CreateTokenInfoResponse{Msg: errMsg}, status.Error(codes.Internal, errMsg)
+	}
 	conds := &npool.Conds{
 		OfficialContract: &v1.StringVal{Op: cruder.EQ, Value: *in.Info.OfficialContract},
 	}
@@ -32,6 +36,7 @@ func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoR
 		handler.WithOfficialContract(in.Info.OfficialContract, true),
 		handler.WithRemark(in.Info.Remark, false),
 		handler.WithData(in.Info.Data, true),
+		handler.WithLimit(1),
 	)
 	if err != nil {
 		logger.Sugar().Errorf("create tokeninfos failed, %v", err)
@@ -41,7 +46,7 @@ func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoR
 	_infos, _, _ := h.GetTokenInfos(ctx)
 	name := *in.Info.Name
 	if len(_infos) > 0 && !in.Force {
-		logger.Sugar().Infof("create tokeninfo,it is exist, %v")
+		logger.Sugar().Infof("create tokeninfo,it is exist")
 		return &npool.CreateTokenInfoResponse{Info: _infos[0], Success: true, Msg: "it`s exist"}, nil
 	}
 
