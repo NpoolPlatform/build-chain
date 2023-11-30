@@ -202,9 +202,6 @@ func Client() (*rpc.Client, error) {
 			endpoint = config.GetENV().EthEndpoint
 		}
 
-		if endpoint == "" {
-			endpoint = "http://127.0.0.1:8545"
-		}
 		client, err = rpc.Dial(endpoint)
 
 		if err != nil {

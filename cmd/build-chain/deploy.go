@@ -52,7 +52,7 @@ var deployCmd = &cli.Command{
 		&cli.BoolFlag{
 			Name:        "force",
 			Aliases:     []string{"fo"},
-			Usage:       "optional (default: false), if already exist force deploy",
+			Usage:       "optional default: false , if already exist force deploy",
 			Required:    false,
 			Value:       false,
 			Destination: &deployInfo.Force,

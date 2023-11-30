@@ -58,16 +58,16 @@ var runCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:        "eth-endpoint",
 			Aliases:     []string{"ee"},
-			Usage:       "ethereum`s endpoint",
+			Usage:       "optional default:http://127.0.0.1:8545,ethereum`s endpoint",
 			EnvVars:     []string{"ENV_ETH_ENDPOINT"},
 			Required:    false,
-			Value:       "",
+			Value:       "http://127.0.0.1:8545",
 			Destination: &ethEndpoint,
 		},
 		&cli.StringFlag{
 			Name:        "inverstor-key",
 			Aliases:     []string{"ik"},
-			Usage:       "it`s usually a private key,which used for deploying contract and distributing tokens",
+			Usage:       "optional default:\"\",it`s usually a private key,which used for deploying contract and distributing tokens",
 			EnvVars:     []string{"ENV_INVERSTOR_KEY"},
 			Required:    false,
 			Value:       "",
@@ -76,7 +76,7 @@ var runCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:        "log dir",
 			Aliases:     []string{"l"},
-			Usage:       "log fir",
+			Usage:       "optional default:./,log dir",
 			EnvVars:     []string{"ENV_LOG_DIR"},
 			Required:    false,
 			Value:       "./",
@@ -85,7 +85,7 @@ var runCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:        "data dir",
 			Aliases:     []string{"d"},
-			Usage:       "data fir",
+			Usage:       "optional default:./,data dir",
 			EnvVars:     []string{"ENV_DATA_DIR"},
 			Required:    false,
 			Value:       "./",
