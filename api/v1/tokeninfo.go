@@ -38,11 +38,11 @@ func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoR
 		return &npool.CreateTokenInfoResponse{Msg: err.Error()}, status.Error(codes.Internal, err.Error())
 	}
 
-	_info, _ := h.GetTokenInfo(ctx)
+	_infos, _, _ := h.GetTokenInfos(ctx)
 	name := *in.Info.Name
-	if _info != nil && !in.Force {
+	if len(_infos) > 0 && !in.Force {
 		logger.Sugar().Infof("create tokeninfo,it is exist, %v")
-		return &npool.CreateTokenInfoResponse{Info: _info, Success: true, Msg: "it`s exist"}, nil
+		return &npool.CreateTokenInfoResponse{Info: _infos[0], Success: true, Msg: "it`s exist"}, nil
 	}
 
 	contract, err := eth.DeployToken(ctx, in.Info)
@@ -52,8 +52,9 @@ func (s *Server) CreateTokenInfo(ctx context.Context, in *npool.CreateTokenInfoR
 	}
 
 	h.PrivateContract = &contract
-	if _info != nil {
-		h.ID = &_info.ID
+
+	if len(_infos) > 0 {
+		h.ID = &_infos[0].ID
 		info, err = h.UpdateTokenInfo(ctx)
 		if err != nil {
 			logger.Sugar().Errorf("create tokeninfo failed%v, contract official name: %v", err, name)
