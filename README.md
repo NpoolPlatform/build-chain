@@ -26,7 +26,7 @@
 ## 说明
 
 ![功能展示](docs/smart_coin.png)
-目前仅支持ethereum上的部分erc20币种（top100中支持23个币种）
+目前仅支持ethereum上的部分erc20币种（top100中支持19个币种）
 
 ### 新增功能
 
@@ -109,7 +109,7 @@ docker run --name buildchain  -p 50491:50491 -p 50490:50490 -e ENV_ETH_ENDPOINT=
 # export no_proxy='my_ip/netmask'
 # 查看参数
 ./build-chain crawl 
-# 1.部署ethscan中erc20-top-tokens 前1-100，大约有23个币种可以成功部署
+# 1.部署ethscan中erc20-top-tokens 前1-100，大约有19个币种可以成功部署
 ./build-chain crawl --host ServerIP:50491 -o 1 -l 100
 # 2.指定公网contract进行部署
 ./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7

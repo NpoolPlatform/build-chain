@@ -34,7 +34,7 @@ var deployCmd = &cli.Command{
 	Aliases: []string{"d"},
 	Usage:   "deploy smart contract from file",
 	Before: func(ctx *cli.Context) error {
-		err := logger.Init(logger.DebugLevel, "./")
+		err := logger.Init(logger.DebugLevel, "./deploy.log")
 		if err != nil {
 			panic(fmt.Errorf("fail to init logger: %v", err))
 		}
@@ -82,11 +82,13 @@ func Deploy(ctx context.Context, deployInfo *DeployInfo) error {
 	if err != nil {
 		return err
 	}
+	logger.Sugar().Infof("read %v tokens from file(%v)", len(tokens), deployInfo.FilePath)
 	for _, v := range tokens {
 		err = CreateTokenInfo(ctx, bcConn, v, deployInfo.Force)
 		if err != nil {
 			logger.Sugar().Error(err)
 		}
+		logger.Sugar().Infof("success deploy %v ", v.Name)
 	}
 	return nil
 }

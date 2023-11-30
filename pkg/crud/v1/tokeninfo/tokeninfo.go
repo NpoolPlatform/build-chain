@@ -80,7 +80,7 @@ type Conds struct {
 	Data             *cruder.Cond
 }
 
-//nolint:funlen
+//nolint:funlen,gocyclo
 func SetQueryConds(q *ent.TokenInfoQuery, conds *Conds) (*ent.TokenInfoQuery, error) {
 	if conds.ID != nil {
 		id, ok := conds.ID.Val.(uint32)
