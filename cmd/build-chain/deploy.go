@@ -88,7 +88,7 @@ func Deploy(ctx context.Context, deployInfo *DeployInfo) error {
 		if err != nil {
 			logger.Sugar().Error(err)
 		}
-		logger.Sugar().Infof("success deploy %v ", v.Name)
+		logger.Sugar().Infof("success deploy %v ", *v.Name)
 	}
 	return nil
 }
@@ -135,7 +135,7 @@ func CreateTokenInfo(ctx context.Context, bcConn *bc_client.BuildChainClientConn
 	}
 
 	if err != nil {
-		return fmt.Errorf("failed create token %v, %v", token.Name, err)
+		return fmt.Errorf("failed create token %v, %v", *token.Name, err)
 	}
 	return nil
 }
