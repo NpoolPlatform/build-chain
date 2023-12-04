@@ -77,29 +77,33 @@
 | ENENV_INVERSTOR_KEY | privateKey | 可选参数-用于部署合约和提供水龙头手续费（请提供有一定ETH的私钥） |
 
 ## 使用说明
-### docker部署
-docker启动
-```shell
-docker run --name buildchain -p 50491:50491 -p 50490:50490 -e ENV_ETH_ENDPOINT="eth_wallet_endpoint" -e ENENV_INVERSTOR_KEY="privateKey" buildchain:test
-```
 
-G网环境启动示例
-```shell
-docker run --name buildchain  -p 50491:50491 -p 50490:50490 -e ENV_ETH_ENDPOINT="https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161" -e ENE_INVERSTOR_KEY="7a87e4528e013e533d63dd7661ead74fc3b25289652469a289bdf89b84e15c21" buildchain:test
-```
-
-注：数据目录在/data，按需挂载到物理机或传入ENV_DATA_DIR环境变量修改
-### 依赖coinbase部署方式
-需要在钱包机所在的环境启动server端
-启动时需要配置eth测试链endpoint地址
+### 1 部署build-chain server
+1.1 依赖coinbase部署，
+需要在钱包机所在的环境启动server端，
+启动时需要配置eth测试链endpoint地址，
 还需要运行build-chain目录下有BuildChain.viper.yaml文件
 
 ```Shell
-# --ik 全称 
-./build-chain run --ee http://EthereumWalletIP:Port
+# 默认获取本地 eth 钱包
+./build-chain run
+
+# 指定私钥部署
+./build-chain run --ee http://EthereumWalletIP:Port --ik $wallet_privatekey
 ```
 
-### 扒取合约信息
+1.2 docker部署
+```shell
+# docker启动
+docker run --name buildchain --restart=always -p 50491:50491 -p 50490:50490 -v /opt/chain/buildchain/data:/data -e ENV_ETH_ENDPOINT="eth_wallet_endpoint" -e ENENV_INVERSTOR_KEY="privateKey" buildchain:test
+
+# G网环境启动示例
+docker run --name buildchain --restart=always -p 50491:50491 -p 50490:50490 -v /opt/chain/buildchain/data:/data -e ENV_ETH_ENDPOINT="https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161" -e ENE_INVERSTOR_KEY="7a87e4528e013e533d63dd7661ead74fc3b25289652469a289bdf89b84e15c21" buildchain:test
+```
+
+注：数据目录在/data，按需挂载到物理机或传入ENV_DATA_DIR环境变量修改
+
+### 2 扒取合约信息(此步骤可省略，deploy/erc20.csv有拉取好的合约信息)
 使用crawl爬取ethscan.io上的合约数据，在真正使用时请用deploy/erc20.csv下的合约信息
 
 ```Shell
@@ -107,23 +111,26 @@ docker run --name buildchain  -p 50491:50491 -p 50490:50490 -e ENV_ETH_ENDPOINT=
 # export all_proxy=socks5://IP:PORT
 # export https_proxy=socks5://IP:PORT
 # export no_proxy='my_ip/netmask'
+
 # 查看参数
-./build-chain crawl 
-# 1.部署ethscan中erc20-top-tokens 前1-100，大约有19个币种可以成功部署
+./build-chain crawl
+
+# 拉取ethscan中erc20-top-tokens 前1-100，大约有19个币种可以成功拉取
 ./build-chain crawl --host ServerIP:50491 -o 1 -l 100
-# 2.指定公网contract进行部署
+
+# 指定公网contract进行拉取
 ./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
 ```
 
-### 部署合约
-启动一个build-chain服务
-
-使用事先准备好的合约信息（一般在deploy下）部署token
+### 3 部署合约
+使用事先准备好的合约信息（一般在deploy下）部署token，部署前要确保build-chain server所使用的钱包地址有币
 
 例如：
-
 ```Shell
-build-chain deploy --file ./deploy/erc20.csv --bc-server ServerIP:50491
+./build-chain deploy --file ./deploy/erc20.csv --bc-server ServerIP:50491
+
+# 清除旧合约，重新部署
+./build-chain deploy --file ./deploy/erc20.csv --bc-server ServerIP:50491 --force true
 ```
 
 部署成功的合约可访问server端的web界面申请空投
@@ -151,13 +158,13 @@ geth attach ~/eth_node0/geth.ipc
 ## 增加合约币流程
 
 1. 启动build-chain server端
-
-例如：
-
-run --eth-endpoint 'http://172.16.3.90:8545' --ik e86bead113c6500b7c9ef662ea6029ed71dcbe6a7e36e5c09945cdc3e616f788
+```
+./build-chain run --eth-endpoint 'http://172.16.3.90:8545' --ik e86bead113c6500b7c9ef662ea6029ed71dcbe6a7e36e5c09945cdc3e616f788
+```
 
 2. 打开server的web页面（浏览器访问ServerIP:50490）,可查看已有币种信息
 
 3. 使用build-chain cli工具将合约部署到测试网
-
-build-chain deploy --file ./deploy/erc20.csv --bc-server ServerIP:50491
+```
+./build-chain deploy --file ./deploy/erc20.csv --bc-server ServerIP:50491
+```
