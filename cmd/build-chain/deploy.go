@@ -125,6 +125,9 @@ func CreateTokenInfo(ctx context.Context, bcConn *bc_client.BuildChainClientConn
 			Force: force,
 			Info:  token,
 		})
+		if err == nil {
+			break
+		}
 	}
 
 	if err != nil {
