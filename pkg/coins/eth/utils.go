@@ -40,7 +40,6 @@ func DeployContract(client *rpc.Client, bytecode string) (common.Address, error)
 	if err != nil {
 		return contractAddr, err
 	}
-	// TODO: ethscan 的contractcode中是有构造参数的 直接发送就可以了
 	nonce, err := backend.PendingNonceAt(ctx, auth.From)
 	if err != nil {
 		return contractAddr, err
@@ -58,6 +57,7 @@ func DeployContract(client *rpc.Client, bytecode string) (common.Address, error)
 	if err != nil {
 		return contractAddr, err
 	}
+
 	legacyTx := &types.LegacyTx{
 		Nonce:    nonce,
 		Gas:      gas,

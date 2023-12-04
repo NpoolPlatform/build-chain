@@ -3,6 +3,7 @@ package eth
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -46,9 +47,9 @@ func DeployToken(ctx context.Context, in *npool.TokenInfoReq) (string, error) {
 	}
 
 	for i := 0; i <= maxRetries; i++ {
-		ok, err := hasContractCode(ctx, client, contract)
-		if ok || err != nil {
-			continue
+		err = hasContractCode(ctx, client, contract)
+		if err == nil {
+			break
 		}
 		// to prevent to be ban ip
 		time.Sleep(time.Second)
@@ -67,15 +68,15 @@ func DeployToken(ctx context.Context, in *npool.TokenInfoReq) (string, error) {
 	return contract.String(), nil
 }
 
-func hasContractCode(ctx context.Context, client *rpc.Client, contract common.Address) (bool, error) {
+func hasContractCode(ctx context.Context, client *rpc.Client, contract common.Address) error {
 	ret, err := ethclient.NewClient(client).CodeAt(ctx, contract, nil)
 	if err != nil {
-		return false, err
+		return err
 	}
 	if len(ret) == 0 {
-		return false, nil
+		return fmt.Errorf("have no contract code at %v", contract.String())
 	}
-	return true, nil
+	return nil
 }
 
 func DeployBaseErc20(ctx context.Context, client *rpc.Client, in *npool.TokenInfoReq) (common.Address, error) {
@@ -86,12 +87,7 @@ func DeployBaseErc20(ctx context.Context, client *rpc.Client, in *npool.TokenInf
 		return contractAddr, err
 	}
 
-	contractAddr, err = DeployContract(client, contract.CreateCode)
-	if err != nil {
-		return contractAddr, err
-	}
-
-	return contractAddr, nil
+	return DeployContract(client, contract.CreateCode)
 }
 
 func TransferSpy(ctx context.Context, client *rpc.Client, contract common.Address) error {

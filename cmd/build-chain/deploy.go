@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"strings"
 	"time"
 
 	bc_client "github.com/NpoolPlatform/build-chain/pkg/client/v1"
@@ -86,7 +85,8 @@ func Deploy(ctx context.Context, deployInfo *DeployInfo) error {
 	for _, v := range tokens {
 		err = CreateTokenInfo(ctx, bcConn, v, deployInfo.Force)
 		if err != nil {
-			logger.Sugar().Error(err)
+			logger.Sugar().Errorf("failed to deploy %v, err: %v", *v.Name, err)
+			continue
 		}
 		logger.Sugar().Infof("success deploy %v ", *v.Name)
 	}
@@ -121,17 +121,10 @@ func CreateTokenInfo(ctx context.Context, bcConn *bc_client.BuildChainClientConn
 
 	retry := true
 	for i := 0; i < 3 && retry; i++ {
-		retry = false
 		_, err = bcConn.CreateTokenInfo(ctx, &proto.CreateTokenInfoRequest{
 			Force: force,
 			Info:  token,
 		})
-		if err != nil &&
-			strings.Contains(err.Error(), "replacement transaction underpriced") &&
-			strings.Contains(err.Error(), " max fee per gas less than block base fee") {
-			i--
-			retry = true
-		}
 	}
 
 	if err != nil {
