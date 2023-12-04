@@ -116,10 +116,10 @@ docker run --name buildchain --restart=always -p 50491:50491 -p 50490:50490 -v /
 ./build-chain crawl
 
 # 拉取ethscan中erc20-top-tokens 前1-100，大约有19个币种可以成功拉取
-./build-chain crawl --host ServerIP:50491 -o 1 -l 100
+./build-chain crawl -o 1 -l 100
 
 # 指定公网contract进行拉取
-./build-chain crawl --host ServerIP:50491 --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
+./build-chain crawl --co 0xdAC17F958D2ee523a2206206994597C13D831ec7
 ```
 
 ### 3 部署合约
