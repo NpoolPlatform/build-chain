@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/predicate"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
-	"github.com/google/uuid"
 )
 
 // TokenInfoQuery is the builder for querying TokenInfo entities.
@@ -86,8 +85,8 @@ func (tiq *TokenInfoQuery) FirstX(ctx context.Context) *TokenInfo {
 
 // FirstID returns the first TokenInfo ID from the query.
 // Returns a *NotFoundError when no TokenInfo ID was found.
-func (tiq *TokenInfoQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (tiq *TokenInfoQuery) FirstID(ctx context.Context) (id uint32, err error) {
+	var ids []uint32
 	if ids, err = tiq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -99,7 +98,7 @@ func (tiq *TokenInfoQuery) FirstID(ctx context.Context) (id uuid.UUID, err error
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (tiq *TokenInfoQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (tiq *TokenInfoQuery) FirstIDX(ctx context.Context) uint32 {
 	id, err := tiq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -137,8 +136,8 @@ func (tiq *TokenInfoQuery) OnlyX(ctx context.Context) *TokenInfo {
 // OnlyID is like Only, but returns the only TokenInfo ID in the query.
 // Returns a *NotSingularError when more than one TokenInfo ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (tiq *TokenInfoQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (tiq *TokenInfoQuery) OnlyID(ctx context.Context) (id uint32, err error) {
+	var ids []uint32
 	if ids, err = tiq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -154,7 +153,7 @@ func (tiq *TokenInfoQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error)
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (tiq *TokenInfoQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (tiq *TokenInfoQuery) OnlyIDX(ctx context.Context) uint32 {
 	id, err := tiq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -180,8 +179,8 @@ func (tiq *TokenInfoQuery) AllX(ctx context.Context) []*TokenInfo {
 }
 
 // IDs executes the query and returns a list of TokenInfo IDs.
-func (tiq *TokenInfoQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
+func (tiq *TokenInfoQuery) IDs(ctx context.Context) ([]uint32, error) {
+	var ids []uint32
 	if err := tiq.Select(tokeninfo.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -189,7 +188,7 @@ func (tiq *TokenInfoQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (tiq *TokenInfoQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (tiq *TokenInfoQuery) IDsX(ctx context.Context) []uint32 {
 	ids, err := tiq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -256,15 +255,14 @@ func (tiq *TokenInfoQuery) Clone() *TokenInfoQuery {
 // Example:
 //
 //	var v []struct {
-//		CreatedAt uint32 `json:"created_at,omitempty"`
+//		EntID uuid.UUID `json:"ent_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.TokenInfo.Query().
-//		GroupBy(tokeninfo.FieldCreatedAt).
+//		GroupBy(tokeninfo.FieldEntID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-//
 func (tiq *TokenInfoQuery) GroupBy(field string, fields ...string) *TokenInfoGroupBy {
 	grbuild := &TokenInfoGroupBy{config: tiq.config}
 	grbuild.fields = append([]string{field}, fields...)
@@ -285,13 +283,12 @@ func (tiq *TokenInfoQuery) GroupBy(field string, fields ...string) *TokenInfoGro
 // Example:
 //
 //	var v []struct {
-//		CreatedAt uint32 `json:"created_at,omitempty"`
+//		EntID uuid.UUID `json:"ent_id,omitempty"`
 //	}
 //
 //	client.TokenInfo.Query().
-//		Select(tokeninfo.FieldCreatedAt).
+//		Select(tokeninfo.FieldEntID).
 //		Scan(ctx, &v)
-//
 func (tiq *TokenInfoQuery) Select(fields ...string) *TokenInfoSelect {
 	tiq.fields = append(tiq.fields, fields...)
 	selbuild := &TokenInfoSelect{TokenInfoQuery: tiq}
@@ -376,7 +373,7 @@ func (tiq *TokenInfoQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   tokeninfo.Table,
 			Columns: tokeninfo.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
+				Type:   field.TypeUint32,
 				Column: tokeninfo.FieldID,
 			},
 		},

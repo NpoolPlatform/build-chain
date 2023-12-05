@@ -3,6 +3,7 @@ package eth
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -14,7 +15,7 @@ import (
 
 	"github.com/NpoolPlatform/build-chain/pkg/coins"
 	"github.com/NpoolPlatform/build-chain/pkg/coins/eth/erc20"
-	npool "github.com/NpoolPlatform/message/npool/build-chain"
+	npool "github.com/NpoolPlatform/message/npool/build-chain/v1"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -29,7 +30,7 @@ var (
 	serialLock          sync.Mutex
 )
 
-func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
+func DeployToken(ctx context.Context, in *npool.TokenInfoReq) (string, error) {
 	client, err := Client()
 	if err != nil {
 		return "", err
@@ -46,9 +47,9 @@ func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
 	}
 
 	for i := 0; i <= maxRetries; i++ {
-		ok, err := hasContractCode(ctx, client, contract)
-		if ok || err != nil {
-			continue
+		err = hasContractCode(ctx, client, contract)
+		if err == nil {
+			break
 		}
 		// to prevent to be ban ip
 		time.Sleep(time.Second)
@@ -67,18 +68,18 @@ func DeployToken(ctx context.Context, in *npool.TokenInfo) (string, error) {
 	return contract.String(), nil
 }
 
-func hasContractCode(ctx context.Context, client *rpc.Client, contract common.Address) (bool, error) {
+func hasContractCode(ctx context.Context, client *rpc.Client, contract common.Address) error {
 	ret, err := ethclient.NewClient(client).CodeAt(ctx, contract, nil)
 	if err != nil {
-		return false, err
+		return err
 	}
 	if len(ret) == 0 {
-		return false, nil
+		return fmt.Errorf("have no contract code at %v", contract.String())
 	}
-	return true, nil
+	return nil
 }
 
-func DeployBaseErc20(ctx context.Context, client *rpc.Client, in *npool.TokenInfo) (common.Address, error) {
+func DeployBaseErc20(ctx context.Context, client *rpc.Client, in *npool.TokenInfoReq) (common.Address, error) {
 	contract := &coins.Contract{}
 	contractAddr := common.Address{}
 	err := json.Unmarshal(in.Data, contract)
@@ -86,12 +87,7 @@ func DeployBaseErc20(ctx context.Context, client *rpc.Client, in *npool.TokenInf
 		return contractAddr, err
 	}
 
-	contractAddr, err = DeployContract(client, contract.CreateCode)
-	if err != nil {
-		return contractAddr, err
-	}
-
-	return contractAddr, nil
+	return DeployContract(client, contract.CreateCode)
 }
 
 func TransferSpy(ctx context.Context, client *rpc.Client, contract common.Address) error {

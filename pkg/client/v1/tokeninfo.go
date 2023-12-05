@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/NpoolPlatform/go-service-framework/pkg/logger"
-	npool "github.com/NpoolPlatform/message/npool/build-chain"
+	npool "github.com/NpoolPlatform/message/npool/build-chain/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
@@ -14,6 +14,7 @@ import (
 type BuildChainClientConn struct {
 	Host string
 	npool.BuildChainClient
+	*grpc.ClientConn
 }
 
 func NewClientConn(_ctx context.Context, host string) (*BuildChainClientConn, error) {
@@ -35,5 +36,6 @@ func NewClientConn(_ctx context.Context, host string) (*BuildChainClientConn, er
 	return &BuildChainClientConn{
 		Host:             host,
 		BuildChainClient: cli,
+		ClientConn:       conn,
 	}, nil
 }

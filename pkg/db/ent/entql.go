@@ -19,12 +19,13 @@ var schemaGraph = func() *sqlgraph.Schema {
 			Table:   tokeninfo.Table,
 			Columns: tokeninfo.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
+				Type:   field.TypeUint32,
 				Column: tokeninfo.FieldID,
 			},
 		},
 		Type: "TokenInfo",
 		Fields: map[string]*sqlgraph.FieldSpec{
+			tokeninfo.FieldEntID:            {Type: field.TypeUUID, Column: tokeninfo.FieldEntID},
 			tokeninfo.FieldCreatedAt:        {Type: field.TypeUint32, Column: tokeninfo.FieldCreatedAt},
 			tokeninfo.FieldUpdatedAt:        {Type: field.TypeUint32, Column: tokeninfo.FieldUpdatedAt},
 			tokeninfo.FieldDeletedAt:        {Type: field.TypeUint32, Column: tokeninfo.FieldDeletedAt},
@@ -83,9 +84,14 @@ func (f *TokenInfoFilter) Where(p entql.P) {
 	})
 }
 
-// WhereID applies the entql [16]byte predicate on the id field.
-func (f *TokenInfoFilter) WhereID(p entql.ValueP) {
+// WhereID applies the entql uint32 predicate on the id field.
+func (f *TokenInfoFilter) WhereID(p entql.Uint32P) {
 	f.Where(p.Field(tokeninfo.FieldID))
+}
+
+// WhereEntID applies the entql [16]byte predicate on the ent_id field.
+func (f *TokenInfoFilter) WhereEntID(p entql.ValueP) {
+	f.Where(p.Field(tokeninfo.FieldEntID))
 }
 
 // WhereCreatedAt applies the entql uint32 predicate on the created_at field.

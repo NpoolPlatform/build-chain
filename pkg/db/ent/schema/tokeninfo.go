@@ -4,7 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"github.com/NpoolPlatform/build-chain/pkg/db/mixin"
-	"github.com/google/uuid"
+	crudermixin "github.com/NpoolPlatform/libent-cruder/pkg/mixin"
 )
 
 type TokenInfo struct {
@@ -13,6 +13,7 @@ type TokenInfo struct {
 
 func (TokenInfo) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		crudermixin.AutoIDMixin{},
 		mixin.TimeMixin{},
 	}
 }
@@ -20,10 +21,6 @@ func (TokenInfo) Mixin() []ent.Mixin {
 // Fields of the DeployedCoins.
 func (TokenInfo) Fields() []ent.Field {
 	return []ent.Field{
-		field.
-			UUID("id", uuid.UUID{}).
-			Default(uuid.New).
-			Unique(),
 		field.
 			String("name"),
 		field.

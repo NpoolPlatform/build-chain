@@ -32,7 +32,8 @@ type TokenInfoMutation struct {
 	config
 	op                Op
 	typ               string
-	id                *uuid.UUID
+	id                *uint32
+	ent_id            *uuid.UUID
 	created_at        *uint32
 	addcreated_at     *int32
 	updated_at        *uint32
@@ -74,7 +75,7 @@ func newTokenInfoMutation(c config, op Op, opts ...tokeninfoOption) *TokenInfoMu
 }
 
 // withTokenInfoID sets the ID field of the mutation.
-func withTokenInfoID(id uuid.UUID) tokeninfoOption {
+func withTokenInfoID(id uint32) tokeninfoOption {
 	return func(m *TokenInfoMutation) {
 		var (
 			err   error
@@ -126,13 +127,13 @@ func (m TokenInfoMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of TokenInfo entities.
-func (m *TokenInfoMutation) SetID(id uuid.UUID) {
+func (m *TokenInfoMutation) SetID(id uint32) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *TokenInfoMutation) ID() (id uuid.UUID, exists bool) {
+func (m *TokenInfoMutation) ID() (id uint32, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -143,12 +144,12 @@ func (m *TokenInfoMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *TokenInfoMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *TokenInfoMutation) IDs(ctx context.Context) ([]uint32, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uuid.UUID{id}, nil
+			return []uint32{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -156,6 +157,42 @@ func (m *TokenInfoMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetEntID sets the "ent_id" field.
+func (m *TokenInfoMutation) SetEntID(u uuid.UUID) {
+	m.ent_id = &u
+}
+
+// EntID returns the value of the "ent_id" field in the mutation.
+func (m *TokenInfoMutation) EntID() (r uuid.UUID, exists bool) {
+	v := m.ent_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEntID returns the old "ent_id" field's value of the TokenInfo entity.
+// If the TokenInfo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TokenInfoMutation) OldEntID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEntID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEntID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEntID: %w", err)
+	}
+	return oldValue.EntID, nil
+}
+
+// ResetEntID resets all changes to the "ent_id" field.
+func (m *TokenInfoMutation) ResetEntID() {
+	m.ent_id = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -747,7 +784,10 @@ func (m *TokenInfoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TokenInfoMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
+	if m.ent_id != nil {
+		fields = append(fields, tokeninfo.FieldEntID)
+	}
 	if m.created_at != nil {
 		fields = append(fields, tokeninfo.FieldCreatedAt)
 	}
@@ -792,6 +832,8 @@ func (m *TokenInfoMutation) Fields() []string {
 // schema.
 func (m *TokenInfoMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case tokeninfo.FieldEntID:
+		return m.EntID()
 	case tokeninfo.FieldCreatedAt:
 		return m.CreatedAt()
 	case tokeninfo.FieldUpdatedAt:
@@ -825,6 +867,8 @@ func (m *TokenInfoMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *TokenInfoMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case tokeninfo.FieldEntID:
+		return m.OldEntID(ctx)
 	case tokeninfo.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case tokeninfo.FieldUpdatedAt:
@@ -858,6 +902,13 @@ func (m *TokenInfoMutation) OldField(ctx context.Context, name string) (ent.Valu
 // type.
 func (m *TokenInfoMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case tokeninfo.FieldEntID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEntID(v)
+		return nil
 	case tokeninfo.FieldCreatedAt:
 		v, ok := value.(uint32)
 		if !ok {
@@ -1069,6 +1120,9 @@ func (m *TokenInfoMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *TokenInfoMutation) ResetField(name string) error {
 	switch name {
+	case tokeninfo.FieldEntID:
+		m.ResetEntID()
+		return nil
 	case tokeninfo.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil

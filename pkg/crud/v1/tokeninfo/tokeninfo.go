@@ -1,209 +1,121 @@
 package tokeninfo
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/NpoolPlatform/build-chain/pkg/db"
 	"github.com/NpoolPlatform/build-chain/pkg/db/ent"
-	"github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
+	enttokeninfo "github.com/NpoolPlatform/build-chain/pkg/db/ent/tokeninfo"
 	"github.com/NpoolPlatform/libent-cruder/pkg/cruder"
-	npool "github.com/NpoolPlatform/message/npool/build-chain"
-
 	"github.com/google/uuid"
 )
 
-func toObj(coin *ent.TokenInfo) *npool.TokenInfo {
-	if coin == nil {
-		return nil
-	}
-	return &npool.TokenInfo{
-		ID:               coin.ID.String(),
-		Name:             coin.Name,
-		ChainType:        coin.ChainType,
-		TokenType:        coin.TokenType,
-		Unit:             coin.Unit,
-		Decimal:          coin.Decimal,
-		OfficialContract: coin.OfficialContract,
-		PrivateContract:  coin.PrivateContract,
-		Remark:           coin.Remark,
-		Data:             coin.Data,
-	}
+type Req struct {
+	EntID            *uuid.UUID
+	ChainType        *string
+	Name             *string
+	Unit             *string
+	Decimal          *string
+	TokenType        *string
+	OfficialContract *string
+	PrivateContract  *string
+	Remark           *string
+	Data             []byte
 }
 
-func toObjs(coins []*ent.TokenInfo) []*npool.TokenInfo {
-	_coins := []*npool.TokenInfo{}
-	for _, v := range coins {
-		_coins = append(_coins, toObj(v))
+func CreateSet(c *ent.TokenInfoCreate, req *Req) *ent.TokenInfoCreate {
+	if req.EntID != nil {
+		c.SetEntID(*req.EntID)
 	}
-	return _coins
+	if req.ChainType != nil {
+		c.SetChainType(*req.ChainType)
+	}
+	if req.Name != nil {
+		c.SetName(*req.Name)
+	}
+	if req.Unit != nil {
+		c.SetUnit(*req.Unit)
+	}
+	if req.Decimal != nil {
+		c.SetDecimal(*req.Decimal)
+	}
+	if req.TokenType != nil {
+		c.SetTokenType(*req.TokenType)
+	}
+	if req.OfficialContract != nil {
+		c.SetOfficialContract(*req.OfficialContract)
+	}
+	if req.PrivateContract != nil {
+		c.SetPrivateContract(*req.PrivateContract)
+	}
+	if req.Remark != nil {
+		c.SetRemark(*req.Remark)
+	}
+	if req.Data != nil {
+		c.SetData(req.Data)
+	}
+	return c
 }
 
-func Create(ctx context.Context, in *npool.TokenInfo) (*npool.TokenInfo, error) {
-	var info *ent.TokenInfo
-	var err error
-
-	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
-		info, err = tx.TokenInfo.Create().
-			SetName(in.GetName()).
-			SetChainType(in.ChainType).
-			SetTokenType(in.TokenType).
-			SetUnit(in.Unit).
-			SetDecimal(in.Decimal).
-			SetOfficialContract(in.OfficialContract).
-			SetPrivateContract(in.PrivateContract).
-			SetRemark(in.Remark).
-			SetData(in.Data).
-			Save(ctx)
-		return err
-	})
-	if err != nil {
-		return nil, err
+func UpdateSet(u *ent.TokenInfoUpdateOne, req *Req) *ent.TokenInfoUpdateOne {
+	if req.PrivateContract != nil {
+		u = u.SetPrivateContract(*req.PrivateContract)
 	}
-
-	return toObj(info), nil
-}
-
-func Update(ctx context.Context, in *npool.TokenInfo) (*npool.TokenInfo, error) {
-	var ret *ent.TokenInfo
-	id, err := uuid.Parse(in.ID)
-	if err != nil {
-		return nil, err
+	if req.Remark != nil {
+		u = u.SetRemark(*req.Remark)
 	}
-	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
-		ret, err = tx.TokenInfo.UpdateOneID(id).
-			SetName(in.GetName()).
-			SetChainType(in.ChainType).
-			SetTokenType(in.TokenType).
-			SetUnit(in.Unit).
-			SetDecimal(in.Decimal).
-			SetOfficialContract(in.OfficialContract).
-			SetPrivateContract(in.PrivateContract).
-			SetRemark(in.Remark).
-			SetData(in.Data).
-			Save(ctx)
-		return err
-	})
-	return toObj(ret), err
-}
-
-func Row(ctx context.Context, id uuid.UUID) (*npool.TokenInfo, error) {
-	var info *ent.TokenInfo
-	var err error
-
-	err = db.WithClient(ctx, func(_ctx context.Context, cli *ent.Client) error {
-		info, err = cli.TokenInfo.Query().Where(tokeninfo.ID(id)).Only(_ctx)
-		return err
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return toObj(info), nil
+	return u
 }
 
 type Conds struct {
 	ID               *cruder.Cond
-	Name             *cruder.Cond
+	EntID            *cruder.Cond
 	ChainType        *cruder.Cond
-	TokenType        *cruder.Cond
+	Name             *cruder.Cond
 	Unit             *cruder.Cond
 	Decimal          *cruder.Cond
+	TokenType        *cruder.Cond
 	OfficialContract *cruder.Cond
 	PrivateContract  *cruder.Cond
 	Remark           *cruder.Cond
 	Data             *cruder.Cond
 }
 
-func Rows(ctx context.Context, conds *Conds, offset, limit int) ([]*npool.TokenInfo, int, error) {
-	var err error
-	rows := []*ent.TokenInfo{}
-	var total int
-
-	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
-		stm := tx.TokenInfo.Query()
-		stm, err = queryFromConds(stm, conds)
-		if err != nil {
-			return err
-		}
-
-		rows, err = stm.Order(ent.Desc(tokeninfo.FieldCreatedAt)).Offset(offset).Limit(limit).All(ctx)
-		if err != nil {
-			return err
-		}
-
-		total, err = stm.Count(ctx)
-		return err
-	})
-	if err != nil {
-		return nil, 0, err
-	}
-	return toObjs(rows), total, nil
-}
-
-func RowOnly(ctx context.Context, conds *Conds) (*npool.TokenInfo, error) {
-	var err error
-	row := &ent.TokenInfo{}
-
-	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
-		stm := tx.TokenInfo.Query()
-		stm, err = queryFromConds(stm, conds)
-		if err != nil {
-			return err
-		}
-
-		row, err = stm.Only(ctx)
-		return err
-	})
-
-	if err != nil {
-		return nil, err
-	}
-	return toObj(row), nil
-}
-
-func All(ctx context.Context, conds *Conds) ([]*npool.TokenInfo, int, error) {
-	var err error
-	rows := []*ent.TokenInfo{}
-	var total int
-
-	err = db.WithTx(ctx, func(ctx context.Context, tx *ent.Tx) error {
-		stm := tx.TokenInfo.Query()
-		stm, err = queryFromConds(stm, conds)
-		if err != nil {
-			return err
-		}
-
-		rows, err = stm.Order(ent.Desc(tokeninfo.FieldCreatedAt)).All(ctx)
-		if err != nil {
-			return err
-		}
-
-		total, err = stm.Count(ctx)
-		return err
-	})
-	if err != nil {
-		return nil, 0, err
-	}
-	return toObjs(rows), total, nil
-}
-
-//nolint
-func queryFromConds(q *ent.TokenInfoQuery, conds *Conds) (*ent.TokenInfoQuery, error) {
-	q.Where(tokeninfo.DeletedAt(0))
-	if conds == nil {
-		return q, nil
-	}
+//nolint:funlen,gocyclo
+func SetQueryConds(q *ent.TokenInfoQuery, conds *Conds) (*ent.TokenInfoQuery, error) {
 	if conds.ID != nil {
-		id, ok := conds.ID.Val.(uuid.UUID)
+		id, ok := conds.ID.Val.(uint32)
 		if !ok {
 			return nil, fmt.Errorf("invalid id")
 		}
 		switch conds.ID.Op {
 		case cruder.EQ:
-			q = q.Where(tokeninfo.ID(id))
+			q.Where(enttokeninfo.ID(id))
 		default:
-			return nil, fmt.Errorf("invalid tokeninfo field")
+			return nil, fmt.Errorf("invalid id field")
+		}
+	}
+	if conds.EntID != nil {
+		entID, ok := conds.EntID.Val.(uuid.UUID)
+		if !ok {
+			return nil, fmt.Errorf("invalid ent_id")
+		}
+		switch conds.EntID.Op {
+		case cruder.EQ:
+			q.Where(enttokeninfo.EntID(entID))
+		default:
+			return nil, fmt.Errorf("invalid ent_id field")
+		}
+	}
+	if conds.ChainType != nil {
+		chainType, ok := conds.ChainType.Val.(string)
+		if !ok {
+			return nil, fmt.Errorf("invalid chain_type")
+		}
+		switch conds.ChainType.Op {
+		case cruder.EQ:
+			q.Where(enttokeninfo.ChainType(chainType))
+		default:
+			return nil, fmt.Errorf("invalid chain_type field")
 		}
 	}
 	if conds.Name != nil {
@@ -213,81 +125,69 @@ func queryFromConds(q *ent.TokenInfoQuery, conds *Conds) (*ent.TokenInfoQuery, e
 		}
 		switch conds.Name.Op {
 		case cruder.EQ:
-			q = q.Where(tokeninfo.Name(name))
+			q.Where(enttokeninfo.Name(name))
 		default:
-			return nil, fmt.Errorf("invalid tokeninfo field")
-		}
-	}
-	if conds.ChainType != nil {
-		_type, ok := conds.ChainType.Val.(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid chaintype")
-		}
-		switch conds.ChainType.Op {
-		case cruder.EQ:
-			q = q.Where(tokeninfo.ChainType(_type))
-		default:
-			return nil, fmt.Errorf("invalid tokeninfo field")
-		}
-	}
-	if conds.TokenType != nil {
-		_type, ok := conds.TokenType.Val.(string)
-		if !ok {
-			return nil, fmt.Errorf("invalid tokentype")
-		}
-		switch conds.TokenType.Op {
-		case cruder.EQ:
-			q = q.Where(tokeninfo.TokenType(_type))
-		default:
-			return nil, fmt.Errorf("invalid tokeninfo field")
+			return nil, fmt.Errorf("invalid name field")
 		}
 	}
 	if conds.Unit != nil {
-		_type, ok := conds.Unit.Val.(string)
+		unit, ok := conds.Unit.Val.(string)
 		if !ok {
 			return nil, fmt.Errorf("invalid unit")
 		}
 		switch conds.Unit.Op {
 		case cruder.EQ:
-			q = q.Where(tokeninfo.Unit(_type))
+			q.Where(enttokeninfo.Unit(unit))
 		default:
-			return nil, fmt.Errorf("invalid tokeninfo field")
+			return nil, fmt.Errorf("invalid unit field")
 		}
 	}
 	if conds.Decimal != nil {
-		_type, ok := conds.Decimal.Val.(string)
+		decimal, ok := conds.Decimal.Val.(string)
 		if !ok {
 			return nil, fmt.Errorf("invalid decimal")
 		}
 		switch conds.Decimal.Op {
 		case cruder.EQ:
-			q = q.Where(tokeninfo.Decimal(_type))
+			q.Where(enttokeninfo.Decimal(decimal))
 		default:
-			return nil, fmt.Errorf("invalid tokeninfo field")
+			return nil, fmt.Errorf("invalid decimal field")
+		}
+	}
+	if conds.TokenType != nil {
+		tokenType, ok := conds.TokenType.Val.(string)
+		if !ok {
+			return nil, fmt.Errorf("invalid token_type")
+		}
+		switch conds.TokenType.Op {
+		case cruder.EQ:
+			q.Where(enttokeninfo.TokenType(tokenType))
+		default:
+			return nil, fmt.Errorf("invalid token_type field")
 		}
 	}
 	if conds.OfficialContract != nil {
-		contract, ok := conds.OfficialContract.Val.(string)
+		officialContract, ok := conds.OfficialContract.Val.(string)
 		if !ok {
-			return nil, fmt.Errorf("invalid officialcontract")
+			return nil, fmt.Errorf("invalid official_contract")
 		}
 		switch conds.OfficialContract.Op {
 		case cruder.EQ:
-			q = q.Where(tokeninfo.OfficialContract(contract))
+			q.Where(enttokeninfo.OfficialContract(officialContract))
 		default:
-			return nil, fmt.Errorf("invalid tokeninfo field")
+			return nil, fmt.Errorf("invalid official_contract field")
 		}
 	}
 	if conds.PrivateContract != nil {
-		contract, ok := conds.PrivateContract.Val.(string)
+		privateContract, ok := conds.PrivateContract.Val.(string)
 		if !ok {
-			return nil, fmt.Errorf("invalid privatecontract")
+			return nil, fmt.Errorf("invalid private_contract")
 		}
 		switch conds.PrivateContract.Op {
 		case cruder.EQ:
-			q = q.Where(tokeninfo.PrivateContract(contract))
+			q.Where(enttokeninfo.PrivateContract(privateContract))
 		default:
-			return nil, fmt.Errorf("invalid tokeninfo field")
+			return nil, fmt.Errorf("invalid private_contract field")
 		}
 	}
 	if conds.Remark != nil {
@@ -297,9 +197,9 @@ func queryFromConds(q *ent.TokenInfoQuery, conds *Conds) (*ent.TokenInfoQuery, e
 		}
 		switch conds.Remark.Op {
 		case cruder.EQ:
-			q = q.Where(tokeninfo.Remark(remark))
+			q.Where(enttokeninfo.Remark(remark))
 		default:
-			return nil, fmt.Errorf("invalid tokeninfo field")
+			return nil, fmt.Errorf("invalid remark field")
 		}
 	}
 	if conds.Data != nil {
@@ -309,9 +209,9 @@ func queryFromConds(q *ent.TokenInfoQuery, conds *Conds) (*ent.TokenInfoQuery, e
 		}
 		switch conds.Data.Op {
 		case cruder.EQ:
-			q = q.Where(tokeninfo.Data(data))
+			q.Where(enttokeninfo.Data(data))
 		default:
-			return nil, fmt.Errorf("invalid tokeninfo field")
+			return nil, fmt.Errorf("invalid data field")
 		}
 	}
 	return q, nil

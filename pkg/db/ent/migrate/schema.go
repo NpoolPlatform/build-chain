@@ -10,7 +10,8 @@ import (
 var (
 	// TokenInfosColumns holds the columns for the "token_infos" table.
 	TokenInfosColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "id", Type: field.TypeUint32, Increment: true},
+		{Name: "ent_id", Type: field.TypeUUID, Unique: true},
 		{Name: "created_at", Type: field.TypeUint32},
 		{Name: "updated_at", Type: field.TypeUint32},
 		{Name: "deleted_at", Type: field.TypeUint32},
@@ -29,6 +30,13 @@ var (
 		Name:       "token_infos",
 		Columns:    TokenInfosColumns,
 		PrimaryKey: []*schema.Column{TokenInfosColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "tokeninfo_ent_id",
+				Unique:  true,
+				Columns: []*schema.Column{TokenInfosColumns[1]},
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{

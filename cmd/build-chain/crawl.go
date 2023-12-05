@@ -31,25 +31,9 @@ var crawlCmd = &cli.Command{
 	},
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:        "host",
-			Aliases:     []string{"ho"},
-			Usage:       "required, host to build-chain server",
-			Required:    true,
-			Value:       "",
-			Destination: &crawlTaskInfo.Host,
-		},
-		&cli.BoolFlag{
-			Name:        "force",
-			Aliases:     []string{"f"},
-			Usage:       "optional, force to redeploy contract",
-			Required:    false,
-			Value:       false,
-			Destination: &crawlTaskInfo.Force,
-		},
-		&cli.StringFlag{
 			Name:        "contract",
 			Aliases:     []string{"co"},
-			Usage:       "optional , appoint the official contract which deployed to build-chain server",
+			Usage:       "optional default: \"\" , appoint the official contract which deployed to build-chain server",
 			Required:    false,
 			Value:       "",
 			Destination: &crawlTaskInfo.Contract,
@@ -57,7 +41,7 @@ var crawlCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:        "chainType",
 			Aliases:     []string{"ch"},
-			Usage:       "optional <ethereum>, appoint the chain type",
+			Usage:       "optional default: ethereum , appoint the chain type",
 			Required:    false,
 			Value:       "ethereum",
 			Destination: &crawlTaskInfo.ChainType,
@@ -65,7 +49,7 @@ var crawlCmd = &cli.Command{
 		&cli.StringFlag{
 			Name:        "tokenType",
 			Aliases:     []string{"to"},
-			Usage:       "optional <erc20>, appoint the token type",
+			Usage:       "optional default: erc20 , appoint the token type",
 			Required:    false,
 			Value:       "erc20",
 			Destination: &crawlTaskInfo.TokenType,
@@ -73,7 +57,7 @@ var crawlCmd = &cli.Command{
 		&cli.IntFlag{
 			Name:        "offset",
 			Aliases:     []string{"o"},
-			Usage:       "optional, appoint the top token offset,use with limit",
+			Usage:       "optional default: -1 , appoint the top token offset,use with limit",
 			Required:    false,
 			Value:       -1,
 			Destination: &crawlTaskInfo.Offset,
@@ -81,10 +65,18 @@ var crawlCmd = &cli.Command{
 		&cli.IntFlag{
 			Name:        "limit",
 			Aliases:     []string{"l"},
-			Usage:       "optional, appoint the top token limit,use with offset",
+			Usage:       "optional default: -1 , appoint the top token limit,use with offset",
 			Required:    false,
 			Value:       -1,
 			Destination: &crawlTaskInfo.Limit,
+		},
+		&cli.StringFlag{
+			Name:        "csvFile",
+			Aliases:     []string{"csv"},
+			Usage:       "optional default: ./tokens.csv , output file path",
+			Required:    false,
+			Value:       "./tokens.csv",
+			Destination: &crawlTaskInfo.CSVPath,
 		},
 	},
 	Action: func(c *cli.Context) error {
